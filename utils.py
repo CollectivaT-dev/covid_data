@@ -43,7 +43,7 @@ def check_comarca_spelling(df_text,comarca_df,stopwords):
         return(comarca_df[ind])
     else:
         print('Not found:',df_text)
-        return(loc_prep)
+        return('(NOTFOUND) '+loc_prep)
 
 def deliver_to(row, col_to_search, locations_df, look_for, loc_to_iterate, patt_to_search):
     '''obtain the delivery locations given free text, 

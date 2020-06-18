@@ -1,0 +1,12 @@
+
+paym_card:
+  - targeta 
+
+paym_cash:
+  - efectiu
+
+paym_bizum:
+  - bizum 
+
+paym_transf:
+  - transferencia
