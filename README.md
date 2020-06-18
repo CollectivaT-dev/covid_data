@@ -6,5 +6,5 @@ To execute the Jupyter Notebooks you will need some extra files:
 - abastiment.csv
 - municipis_merge.csv
 - w2v_cat_model.bin (a pretrained Catalan word2vec)
-- paths.cfg (a dictionary with key "input_path" with the local path where the data is located)
+- paths.yaml (containing the "input_path" key with the local path where the data is located)
 
