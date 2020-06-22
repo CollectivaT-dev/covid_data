@@ -2,6 +2,21 @@ import re
 import unicodedata
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
+from stop_words import get_stop_words
+
+def get_all_stopwords():
+    #load a set of stop words
+    stopwords = get_stop_words('catalan')
+    #add new stopwords
+    newStopWords = ['que','des', 'al', 'del', 'ho', 'd', 'l','per','tambe', 'fins',
+                   'a', 'cap', 'hi', 'ni', 'no']
+    stopwords.extend(newStopWords)
+    return(stopwords)
+
+def run_preprocess_on_cols(data,cols,stopwords):
+    for col in cols:
+        data[col+'_prep'] = data[col].apply(lambda x: pre_process(x,stopwords,sw=True))
+
 
 def pre_process(text, stopwords=[], sw=False):
     
@@ -70,6 +85,21 @@ def deliver_to(row, col_to_search, locations_df, look_for, loc_to_iterate, patt_
                     
     return locations_in_text.strip(',')
 
+def get_payment_methods(data,imp_cols):
+    '''creates a new column containing a list of the different payment
+    methods found in the free text fields'''
+    data['PAGO'] = ''
+    pago = {'efectiu':'efectiu', 
+            'bizum':'bizum', 
+            'transferencia previa':'transferencia', 
+            'targeta':'targeta'}
+    for c in [x+'_prep' for x in imp_cols]:
+        for k,v in pago.items():
+            if data[data[c].str.contains(r'\b'+v+r'\b')].shape[0]!=0:
+                ind = data[data[c].str.contains(r'\b'+v+r'\b')].index
+                data.loc[ind,'PAGO'] = data.loc[ind]['PAGO'] +','+ k
+    data['PAGO'] = data['PAGO'].str.strip(',')
+    return(data)
 
 def get_text_locations(df, output_col,col_to_search, locations_df, look_for, delivery_patt):
     '''Run through the registers of the specified column and look for locations
@@ -89,6 +119,51 @@ def get_text_locations(df, output_col,col_to_search, locations_df, look_for, del
         df[output_col] = df.apply(lambda row: deliver_to(row, col_to_search, locations_df, look_for,
                                                          loc_to_iterate, patt_to_search),axis=1)
 
+def run_text_locations(data, locations_df, imp_cols, delivery_patt):
+    for data_field in imp_cols+['comarca_origin']:
+        for loc in ['Comarca','Capital','Provincia','Municipi']:
+            # obtain the locations from the free text fields
+            get_text_locations(data,loc.lower(),data_field,locations_df,loc,delivery_patt)
+
+def create_donde_col(data,mun_to_com_dict):
+    '''only for abastiments. create 'donde' column completing comarca_origin column with:
+    - comarca data
+    - replacing municipis with comarques for capital and municipi columns
+    concatenating the resulting columns and keeping only the unique values'''
+    data.loc[data.comarca_origin.str.contains('NOTFOUND'), 'comarca_origin'] = data.COMARCA
+    data[['capital','municipi']] = data[['capital','municipi']].replace(mun_to_com_dict,regex=True)
+    data['DONDE']        = (data['capital']+','+data['municipi']+','+data['comarca_origin']
+                                   ).str.strip(',').str.split(',')
+    data.drop(['capital','municipi', 'comarca_origin_prep','comarca','provincia'],axis=1,inplace=True)
+    data['DONDE'] = data['DONDE'].apply(lambda x: ','.join(set(x)))
+    # to have the same format as pagesos data
+    data['DONDE'] = data['DONDE'].str.replace(r'\bCatalunya\b','Tota Catalunya')
+    return(data)
+
+def create_binary_var(data,dic,col):
+    '''Create a column with binary values based on if the input column has the 
+    text contained in the values of the input dictionary or not'''
+    for key, val in dic.items():
+        data[key]=0
+        data.loc[data[col].str.contains(r'\b'+r'\b|\b'.join(val)+r'\b'),key] = 1
+
+def add_numerical_cols(data):
+    # Creating variables about number of products sold:
+    data['n_main_prod'] = data['meat'] + data['fruit'] + data['vegetables']
+    data['n_other_prod'] = data['flowers'] + data['legumes'] + data['charcuterie']+ data['mushrooms'] + data['rice'] +\
+        data['flour_cereals'] + data['oil_olives_vinager'] + data['eggs'] + data['dairies'] +\
+        data['herbs_spices'] + data['hygiene_medicines'] + data['alcohol'] +\
+        data['fruit_veggies_products'] + data['drinks'] + data['bread_pastries'] +\
+        data['pasta'] + data['others']
+
+    data['n_tot_prod'] = data['n_main_prod'] + data['n_other_prod']
+
+    # Creating variable about number of payment methods:
+    data['n_paym_methods']=data.paym_bizum+data.paym_cash+data.paym_card+data.paym_transf 
+
+    # Creating variable about number of comarcas where they deliver:
+    data['n_comarcas_delivery']=data['DONDE'].apply(lambda x: x.count(',')+1 if 'Catalunya' not in x else 42)
+    return(data)
 
 def run_project_match(txt, df_col):
     '''Check if the name of the project/brand is in both datasets.
