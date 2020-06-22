@@ -7,4 +7,6 @@ dadess_dades/138
 *.kml
 *.json
 *.html
+*.Rhistory
+*.ipynb_checkpoints
 paths.cfg
