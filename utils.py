@@ -1,5 +1,7 @@
 import re
 import unicodedata
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
 
 def pre_process(text, stopwords=[], sw=False):
     
@@ -86,3 +88,25 @@ def get_text_locations(df, output_col,col_to_search, locations_df, look_for, del
     else:
         df[output_col] = df.apply(lambda row: deliver_to(row, col_to_search, locations_df, look_for,
                                                          loc_to_iterate, patt_to_search),axis=1)
+
+
+def run_project_match(txt, df_col):
+    '''Check if the name of the project/brand is in both datasets.
+    The match is done checking both the ratio and partial ratio (per word).
+    A "score" is associated to the match: 1 == exact match, 0.5 ==
+    partial match'''
+    n=0
+    dupl = ''
+    for i,row in df_col.iteritems():
+        rat      = fuzz.ratio(txt.lower(),row.lower())
+        part_rat = fuzz.partial_ratio(txt.lower(),row.lower())
+        if 100 > rat > 70 and 100 > part_rat > 80:
+            print('Partial match:', txt,'vs.',row,rat,part_rat)
+            dupl = row
+            n+=0.5
+            break
+        if rat == 100 and part_rat == 100:
+            dupl = row
+            n+=1
+            break
+    return str(n)+';'+ dupl
