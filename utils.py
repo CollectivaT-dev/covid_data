@@ -3,6 +3,9 @@ import unicodedata
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 from stop_words import get_stop_words
+from  geopy.geocoders import Nominatim
+import time
+import pandas as pd
 
 def get_all_stopwords():
     #load a set of stop words
@@ -16,7 +19,6 @@ def get_all_stopwords():
 def run_preprocess_on_cols(data,cols,stopwords):
     for col in cols:
         data[col+'_prep'] = data[col].apply(lambda x: pre_process(x,stopwords,sw=True))
-
 
 def pre_process(text, stopwords=[], sw=False):
     
@@ -60,7 +62,7 @@ def check_comarca_spelling(df_text,comarca_df,stopwords):
         return(comarca_df[ind])
     else:
         print('Not found:',df_text)
-        return('(NOTFOUND) '+loc_prep)
+        return('(NOTFOUND)')
 
 def deliver_to(row, col_to_search, locations_df, look_for, loc_to_iterate, patt_to_search):
     '''obtain the delivery locations given free text, 
@@ -130,7 +132,7 @@ def create_donde_col(data,mun_to_com_dict):
     - comarca data
     - replacing municipis with comarques for capital and municipi columns
     concatenating the resulting columns and keeping only the unique values'''
-    data.loc[data.comarca_origin.str.contains('NOTFOUND'), 'comarca_origin'] = data.COMARCA
+    #data.loc[data.comarca_origin.str.contains('NOTFOUND'), 'comarca_origin'] = data.COMARCA
     data[['capital','municipi']] = data[['capital','municipi']].replace(mun_to_com_dict,regex=True)
     data['DONDE']        = (data['capital']+','+data['municipi']+','+data['comarca_origin']
                                    ).str.strip(',').str.split(',')
@@ -185,3 +187,49 @@ def run_project_match(txt, df_col):
             n+=1
             break
     return str(n)+';'+ dupl
+
+# ANALYSIS FUNCTIONS
+
+def get_comarca_coords(data):
+    geolocator = Nominatim()
+    country ="Spain"
+    coord = []
+    for comarca in [x for x in data['comarca_origin'].unique() if x not in ['(NOTFOUND)','Repartim al Bages, Solsonès, Barcelonès i Berguedà']]:
+        geolocator = Nominatim(user_agent="my-application")
+        loc = geolocator.geocode(comarca+','+ country)
+        coord.append({'comarca':comarca,'latitude':loc.latitude,'longitude':loc.longitude})
+        time.sleep(1) #to avoid time out
+    com_coord = pd.DataFrame(coord)
+    return(com_coord)
+
+def dataset_to_plot(data,com_coord,n_columns):
+    '''Counts the values per comarca for the whole dataset and per dataset tipe, 
+    computes the mean for those columns that are results of sums, sums the values
+    of the other columns and returns the resulting dataset with data per comarca'''
+    n_comarca = data.groupby('comarca_origin',
+                         as_index=False)['MARCA'].count().rename(columns={
+                                                                'MARCA':'total'})
+    n_abastiment = data[data.dataset=='abastiment'].groupby(['dataset','comarca_origin'],
+                             as_index=False)['MARCA'].count().rename(columns={
+                                                                    'MARCA':'n_abastiment'})
+    n_pagesos = data[data.dataset=='pagesos'].groupby(['dataset','comarca_origin'],
+                             as_index=False)['MARCA'].count().rename(columns={
+                                                                    'MARCA':'n_pagesos'})
+    n_dataset = n_comarca.merge(n_abastiment.drop('dataset',axis=1), 
+                                on='comarca_origin',
+                                how='outer').merge(n_pagesos.drop('dataset',axis=1),
+                                                   on='comarca_origin',
+                                                   how='outer')
+    mean_dataset = data[['comarca_origin'] + n_columns].groupby('comarca_origin',
+                                                     as_index=False).mean().round(2)
+    sum_dataset = data.drop(n_columns,axis=1).groupby('comarca_origin',
+                                                  as_index=False).sum().merge(com_coord,
+                                                          left_on='comarca_origin',
+                                                         right_on='comarca',
+                                                                             how='outer')
+    to_plot = n_dataset.merge(sum_dataset,
+                          on='comarca_origin',
+                          how='outer').merge(mean_dataset,
+                                            on='comarca_origin',
+                                            how='outer').fillna(0)
+    return(to_plot)
