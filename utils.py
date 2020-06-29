@@ -149,7 +149,7 @@ def create_binary_var(data,dic,col):
         data[key]=0
         data.loc[data[col].str.contains(r'\b'+r'\b|\b'.join(val)+r'\b'),key] = 1
 
-def add_numerical_cols(data):
+def add_numerical_cols(data,more_data = False):
     # Creating variables about number of products sold:
     data['n_main_prod'] = data['meat'] + data['fruit'] + data['vegetables']
     data['n_other_prod'] = data['flowers'] + data['legumes'] + data['charcuterie']+ data['mushrooms'] + data['rice'] +\
@@ -160,11 +160,12 @@ def add_numerical_cols(data):
 
     data['n_tot_prod'] = data['n_main_prod'] + data['n_other_prod']
 
-    # Creating variable about number of payment methods:
-    data['n_paym_methods']=data.paym_bizum+data.paym_cash+data.paym_card+data.paym_transf 
+    if more_data==True:
+        # Creating variable about number of payment methods:
+        data['n_paym_methods']=data.paym_bizum+data.paym_cash+data.paym_card+data.paym_transf 
 
-    # Creating variable about number of comarcas where they deliver:
-    data['n_comarcas_delivery']=data['DONDE'].apply(lambda x: x.count(',')+1 if 'Catalunya' not in x else 42)
+        # Creating variable about number of comarcas where they deliver:
+        data['n_comarcas_delivery']=data['DONDE'].apply(lambda x: x.count(',')+1 if 'Catalunya' not in x else 42)
     return(data)
 
 def run_project_match(txt, df_col):
