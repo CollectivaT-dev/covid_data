@@ -187,7 +187,23 @@ def run_project_match(txt, df_col):
             dupl = row
             n+=1
             break
-    return str(n)+';'+ dupl
+    return str(n)+';'+txt+';'+dupl
+
+def get_project_matches(col1,col2,not_duplicates=None):
+    matches = col1.apply(lambda row: run_project_match(row, col2))
+    matches = matches.str.split(';',expand=True).rename(columns={0:'exact',1:'marca_inicial',2:'MARCA'})
+
+    # keep the values that are duplicates only
+    matches = matches[matches.exact != '0']
+
+    # remove false positives
+    if not_duplicates != None:
+        to_remove = matches[matches['marca_inicial'].str.contains(r'\b'+r'\b|\b'.join(not_duplicates)+r'\b')]
+        print('Matches considered non-matches:\n',to_remove[['marca_inicial','MARCA']])
+        ind = to_remove.index
+        matches = matches.drop(ind)
+
+    return(matches)
 
 # ANALYSIS FUNCTIONS
 
