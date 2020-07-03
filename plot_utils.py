@@ -1,10 +1,7 @@
 import plotly.graph_objects as go
-def plot_map_comarca_points(data,cat,col,txt,x_low,x_up,y_low,y_up):
-    max_size = 40
-    # Create figure
-    fig = go.Figure()
 
-    # Add trace
+def add_trace_plot(fig,data,col,txt,max_size,max_value,m_color,series_name):
+      # Add trace
     fig.add_trace(
         go.Scatter(x=data['longitude'],
                    y=data['latitude'],
@@ -12,9 +9,17 @@ def plot_map_comarca_points(data,cat,col,txt,x_low,x_up,y_low,y_up):
                    hoverinfo='text',
                   hovertext='Comarca: '+data['comarca_origin'] +\
                    '<br>' + 'Productors '+txt+': '+data[col].astype(str),
-                  marker=dict(size=data[col]*(max_size/data[col].max()),
-                             color='#63022d'))
+                  marker=dict(size=data[col]*(max_size/max_value),
+                             color=m_color),
+                  name=series_name)
     )
+
+def plot_map_comarca_points(data,cat,col,txt,max_size,max_value,x_low,x_up,y_low,y_up):
+    
+    # Create figure
+    fig = go.Figure()
+
+    add_trace_plot(fig,data,col,txt,max_size,max_value,m_color='#63022d',series_name='Resposta covid')
 
     # Add images
     fig.add_layout_image(
@@ -42,8 +47,8 @@ def plot_map_comarca_points(data,cat,col,txt,x_low,x_up,y_low,y_up):
                                showticklabels=False),
                      width=800,
                      height=800)
-
-    fig.show()
+    return(fig)
+    
 
 def plotly_hist(data, col, txt):
     fig = go.Figure()

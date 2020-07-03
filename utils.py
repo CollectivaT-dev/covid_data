@@ -208,24 +208,18 @@ def get_project_matches(col1,col2,not_duplicates=None):
 # ANALYSIS FUNCTIONS
 
 def get_comarca_coords(data):
-    geolocator = Nominatim()
+    geolocator = Nominatim(user_agent="my-app")
     country ="Spain"
     coord = []
     for comarca in [x for x in data['comarca_origin'].unique() if x not in ['(NOTFOUND)','Repartim al Bages, Solsonès, Barcelonès i Berguedà']]:
-        geolocator = Nominatim(user_agent="my-application")
+        #geolocator = Nominatim(user_agent="my-application")
         loc = geolocator.geocode(comarca+','+ country)
         coord.append({'comarca':comarca,'latitude':loc.latitude,'longitude':loc.longitude})
         time.sleep(1) #to avoid time out
     com_coord = pd.DataFrame(coord)
     return(com_coord)
 
-def dataset_to_plot(data,com_coord,n_columns):
-    '''Counts the values per comarca for the whole dataset and per dataset tipe, 
-    computes the mean for those columns that are results of sums, sums the values
-    of the other columns and returns the resulting dataset with data per comarca'''
-    n_comarca = data.groupby('comarca_origin',
-                         as_index=False)['MARCA'].count().rename(columns={
-                                                                'MARCA':'total'})
+def get_n_data_per_dataset(data,n_comarca):
     n_abastiment = data[data.dataset=='abastiment'].groupby(['dataset','comarca_origin'],
                              as_index=False)['MARCA'].count().rename(columns={
                                                                     'MARCA':'n_abastiment'})
@@ -234,17 +228,31 @@ def dataset_to_plot(data,com_coord,n_columns):
                                                                     'MARCA':'n_pagesos'})
     n_dataset = n_comarca.merge(n_abastiment.drop('dataset',axis=1), 
                                 on='comarca_origin',
-                                how='outer').merge(n_pagesos.drop('dataset',axis=1),
+                                how='right').merge(n_pagesos.drop('dataset',axis=1),
                                                    on='comarca_origin',
                                                    how='outer')
+    return(n_dataset)
+
+def dataset_to_plot(data,com_coord,n_columns,multiple_origins=False):
+    '''Counts the values per comarca for the whole dataset and per dataset tipe, 
+    computes the mean for those columns that are results of sums, sums the values
+    of the other columns and returns the resulting dataset with data per comarca'''
+    n_comarca = data.groupby('comarca_origin',
+                         as_index=False)['MARCA'].count().rename(columns={
+                                                                'MARCA':'total'})
+    # if the input dataset contains data from abastiment + pagesos, we will 
+    # compute the number per dataset also 
+    if multiple_origins == True:
+        n_comarca = get_n_data_per_dataset(data,n_comarca)
+
     mean_dataset = data[['comarca_origin'] + n_columns].groupby('comarca_origin',
                                                      as_index=False).mean().round(2)
     sum_dataset = data.drop(n_columns,axis=1).groupby('comarca_origin',
                                                   as_index=False).sum().merge(com_coord,
                                                           left_on='comarca_origin',
                                                          right_on='comarca',
-                                                                             how='outer')
-    to_plot = n_dataset.merge(sum_dataset,
+                                                                             how='left')
+    to_plot = n_comarca.merge(sum_dataset,
                           on='comarca_origin',
                           how='outer').merge(mean_dataset,
                                             on='comarca_origin',
