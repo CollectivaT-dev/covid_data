@@ -149,6 +149,8 @@ def create_binary_var(data,dic,col):
         data[key]=0
         data.loc[data[col].str.contains(r'\b'+r'\b|\b'.join(val)+r'\b'),key] = 1
 
+
+
 def add_numerical_cols(data,more_data = False):
     # Creating variables about number of products sold:
     data['n_main_prod'] = data['meat'] + data['fruit'] + data['vegetables']
@@ -219,6 +221,39 @@ def get_comarca_coords(data):
     com_coord = pd.DataFrame(coord)
     return(com_coord)
 
+def add_payment_types(data,pagament):
+    for k,v in pagament.items():
+        if k not in data.columns:
+            data[k] = 0
+    data.loc[(data.paym_card == 1) & (data.paym_cash == 1),'card+cash'] = 1
+    data.loc[(data.paym_trans == 1) & (data.paym_cash == 1),'trans+cash'] = 1
+    data.loc[(data.paym_trans == 1) & (data.paym_card == 1),'card+trans'] = 1
+    data.loc[(data.paym_bizum == 1) & (data.paym_card == 1),'card+bizum'] = 1
+    data.loc[(data.paym_bizum == 1) & (data.paym_cash == 1),'cash+bizum'] = 1
+    data.loc[(data.paym_trans == 1) & (data.paym_bizum == 1),'trans+bizum'] = 1
+    return(data)
+
+def separate_ab_from_pag_data(data):
+    ab  = data.loc[(data.dataset=='abastiment')]
+    pag = data.loc[(data.dataset=='pagesos')]
+    return(ab,pag)
+    
+def pagament_prep(data,pagament):
+    ab,pag = separate_ab_from_pag_data(data)
+    ab.rename(columns=pagament,inplace=True)
+    pag.rename(columns=pagament,inplace=True)
+
+    ab_gb = pd.DataFrame(ab[list(pagament.values())].sum(),columns=['sum'])
+    ab_gb['pctge'] = ab_gb['sum']/ab.shape[0]*100
+    #ab_gb = ab_gb.sort_values(by='pctgeascending=False)
+    ab_gb = ab_gb.round(2)
+    
+    pag_gb = pd.DataFrame(pag[list(pagament.values())].sum(),columns=['sum'])
+    pag_gb['pctge'] = pag_gb['sum']/pag.shape[0]*100
+    pag_gb = pag_gb.sort_values(by='pctge',ascending=False)
+    pag_gb = pag_gb.round(2)
+    return(ab_gb,pag_gb)
+
 def get_n_data_per_dataset(data,n_comarca):
     n_abastiment = data[data.dataset=='abastiment'].groupby(['dataset','comarca_origin'],
                              as_index=False)['MARCA'].count().rename(columns={
@@ -233,13 +268,20 @@ def get_n_data_per_dataset(data,n_comarca):
                                                    how='outer')
     return(n_dataset)
 
-def dataset_to_plot(data,com_coord,n_columns,multiple_origins=False):
+def dataset_to_plot(data,vdp,com_coord,n_columns,multiple_origins=False):
     '''Counts the values per comarca for the whole dataset and per dataset tipe, 
     computes the mean for those columns that are results of sums, sums the values
     of the other columns and returns the resulting dataset with data per comarca'''
-    n_comarca = data.groupby('comarca_origin',
+    n_new = data.groupby('comarca_origin',
                          as_index=False)['MARCA'].count().rename(columns={
                                                                 'MARCA':'total'})
+    # number of producers existing before
+    n_old = vdp.groupby('comarca_origin',as_index=False)['MARCA'].count().rename(columns={
+                                                                'MARCA':'n_before'})
+    n_comarca = n_new.merge(n_old)
+    n_comarca['pctge_new'] = n_comarca['total']/n_comarca['n_before']*100
+    n_comarca['pctge_new'] = n_comarca['pctge_new'].astype(int)
+
     # if the input dataset contains data from abastiment + pagesos, we will 
     # compute the number per dataset also 
     if multiple_origins == True:
