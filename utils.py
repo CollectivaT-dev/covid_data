@@ -6,6 +6,7 @@ from stop_words import get_stop_words
 from  geopy.geocoders import Nominatim
 import time
 import pandas as pd
+import numpy as np
 
 def get_all_stopwords():
     #load a set of stop words
@@ -149,7 +150,14 @@ def create_binary_var(data,dic,col):
         data[key]=0
         data.loc[data[col].str.contains(r'\b'+r'\b|\b'.join(val)+r'\b'),key] = 1
 
-
+def create_sectors_col(df,dic):
+    '''Create 5 columns with binary values representing if a producer belong to a given sector or not, 
+    as defined in the input dictionary (at least one column of the list of columns related to the sector must be 1)'''
+    for txt, sector in dic.items():
+        #print('sector name: ', txt)
+        #print('sector fields: ', sector)  
+        df['is'+txt]=np.where(df[sector].sum(axis=1).gt(0), 1, 0)
+    return(df)
 
 def add_numerical_cols(data,more_data = False):
     # Creating variables about number of products sold:

@@ -1,0 +1,26 @@
+
+HORTA:
+  - vegetables
+  - legumes
+  - mushrooms
+  - herbs_spices
+  
+FRUITA:
+  - fruit
+  
+CEREALS:
+  - flour_cereals
+  - rice
+
+RAMADERIA:
+  - meat
+  - charcuterie
+  - eggs
+  
+ELABORACIO:
+  - fruit_veggies_products
+  - oil_olives_vinager
+  - bread_pastries
+  - alcohol
+  - dairies
+  - pasta

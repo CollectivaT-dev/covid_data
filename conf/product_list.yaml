@@ -129,7 +129,10 @@ flour_cereals:
   - cereals
   - blats
   - blat
-
+  - civada
+  - ordi
+  - fajol
+  
 oil_olives_vinager:
   - oli
   - olis
