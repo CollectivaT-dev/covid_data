@@ -1,0 +1,69 @@
+All:
+  on_fields:
+  off_fields:
+  
+OnlyMainProd:
+  on_fields:
+    - n_main_prod
+  off_fields:
+    - n_other_prod
+
+NoMainProd:
+  on_fields:
+    - n_other_prod
+  off_fields:
+    - n_main_prod
+
+OnlyMeat:
+  on_fields:
+    - meat
+  off_fields:
+    - n_other_prod
+    - fruit
+    - vegetables
+
+OnlyFruitVeg:
+  on_fields:
+    - n_main_prod
+  off_fields:
+    - meat
+    - n_other_prod
+
+OnlyDairies:
+  on_fields:
+    - dairies
+  off_fields:
+    - n_main_prod
+    - isHORTA
+    - isFRUITA
+    - isCEREALS
+    - isRAMADERIA
+    - fruit_veggies_products
+    - oil_olives_vinager
+    - bread_pastries
+    - alcohol
+    - pasta
+    - hygiene_medicines
+    - drinks
+    - flowers
+    - others
+
+MakeElaborations:
+  on_fields:
+    - isELABORACIO
+  off_fields:
+  
+SectRamaderia:
+  on_fields:
+    - isRAMADERIA
+  off_fields:
+  
+SectHorta:
+  on_fields:
+    - isHORTA
+  off_fields:
+  
+SectFruita:
+  on_fields:
+    - isFRUITA
+  off_fields:
