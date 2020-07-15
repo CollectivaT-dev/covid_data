@@ -1,17 +1,18 @@
 import plotly.graph_objects as go
 import pandas as pd
 
-def plot_map_comarca_points(data,cat,col,txt,max_size,max_value,x_low,x_up,y_low,y_up,title_name):
+def plot_map_comarca_points(data,cat,col,txt,max_value,title_name):
     fig = create_figure()
-    fig = add_trace_plot(fig,data,col,txt,max_size,max_value,m_color='#63022d',series_name='Resposta covid')
-    fig = plot_layout(fig,cat,x_low,x_up,y_low,y_up,title_name)
+    fig = add_trace_plot(fig,data,col,txt,max_value,m_color='#63022d',series_name='Resposta covid')
+    fig = plot_layout(fig,cat,title_name)
     return(fig)
 
 def create_figure():
     fig = go.Figure()
     return(fig)
 
-def add_trace_plot(fig,data,col,txt,max_size,max_value,m_color,series_name):
+def add_trace_plot(fig,data,col,txt,max_value,m_color,series_name):
+    max_size = 40
       # Add trace
     fig.add_trace(
         go.Scatter(x=data['longitude'],
@@ -26,7 +27,8 @@ def add_trace_plot(fig,data,col,txt,max_size,max_value,m_color,series_name):
     )
     return(fig)
 
-def add_trace_text_plot(fig,data,col,txt,max_size,max_value,m_color):
+def add_trace_text_plot(fig,data,col,txt,max_value,m_color):
+    max_size = 40
     if 'pctge' in col:
         text_col = data[col].astype(int).astype(str)+'%' 
     else:
@@ -46,7 +48,9 @@ def add_trace_text_plot(fig,data,col,txt,max_size,max_value,m_color):
     )
     return(fig)
 
-def plot_layout(fig,cat,x_low,x_up,y_low,y_up,title_name):
+def plot_layout(fig,cat,title_name):
+    x_low,x_up = 0.18,3.3
+    y_low,y_up = 40.5,42.9
       # Add images
     fig.add_layout_image(
             dict(
@@ -75,29 +79,6 @@ def plot_layout(fig,cat,x_low,x_up,y_low,y_up,title_name):
                      height=800)
     return(fig)
 
-
-    
-
-def plotly_hist(data, col, txt):
-    fig = go.Figure()
-    fig.add_trace(go.Histogram(
-        x=data[col],
-        xbins=dict( # bins used for histogram
-            start=data[col].min(),
-            end=data[col].max(),
-            size=1
-        ),
-        marker_color='#63022d',
-        opacity=0.75
-    ))
-
-    fig.update_layout(template="plotly_white",
-                      title=txt,
-                     xaxis_title_text='Value',
-                     yaxis_title_text='Count')
-
-    fig.show()
-
 def bar_perc_separate_datasets(data,col,txt):
     rep_txt = txt.replace('Mitja','Percentatge')
     ab,pag = separate_ab_from_pag_data(data)
@@ -120,7 +101,7 @@ def bar_perc_separate_datasets(data,col,txt):
     fig.add_trace(go.Bar(
         x=pag_gb.index,
         y=pag_gb,
-        marker_color='#f8cecc',
+        marker_color='#f7b49d',
         opacity=0.75,
         name='Pagesos'
     ))
@@ -131,7 +112,6 @@ def bar_perc_separate_datasets(data,col,txt):
                      yaxis_title_text='Percentatge productors (%)')
 
     return(fig)
-
 
 def separate_ab_from_pag_data(data):
     ab  = data.loc[(data.dataset=='abastiment')]
@@ -154,19 +134,7 @@ def pagament_prep(data,pagament):
     pag_gb = pag_gb.round(2)
     return(ab_gb,pag_gb)
 
-def get_n_data_per_dataset(data,n_comarca):
-    n_abastiment = data[data.dataset=='abastiment'].groupby(['dataset','comarca_origin'],
-                             as_index=False)['MARCA'].count().rename(columns={
-                                                                    'MARCA':'n_abastiment'})
-    n_pagesos = data[data.dataset=='pagesos'].groupby(['dataset','comarca_origin'],
-                             as_index=False)['MARCA'].count().rename(columns={
-                                                                    'MARCA':'n_pagesos'})
-    n_dataset = n_comarca.merge(n_abastiment.drop('dataset',axis=1), 
-                                on='comarca_origin',
-                                how='right').merge(n_pagesos.drop('dataset',axis=1),
-                                                   on='comarca_origin',
-                                                   how='outer')
-    return(n_dataset)
+
 
 def dataset_to_plot(data,vdp,com_coord,n_columns,multiple_origins=False):
     '''Counts the values per comarca for the whole dataset and per dataset tipe, 
@@ -201,6 +169,20 @@ def dataset_to_plot(data,vdp,com_coord,n_columns,multiple_origins=False):
                                             how='outer').fillna(0)
     return(to_plot)
 
+def get_n_data_per_dataset(data,n_comarca):
+    n_abastiment = data[data.dataset=='abastiment'].groupby(['dataset','comarca_origin'],
+                             as_index=False)['MARCA'].count().rename(columns={
+                                                                    'MARCA':'n_abastiment'})
+    n_pagesos = data[data.dataset=='pagesos'].groupby(['dataset','comarca_origin'],
+                             as_index=False)['MARCA'].count().rename(columns={
+                                                                    'MARCA':'n_pagesos'})
+    n_dataset = n_comarca.merge(n_abastiment.drop('dataset',axis=1), 
+                                on='comarca_origin',
+                                how='right').merge(n_pagesos.drop('dataset',axis=1),
+                                                   on='comarca_origin',
+                                                   how='outer')
+    return(n_dataset)
+
 
 def bar_payment_type(pag_gb,ab_gb):
     fig = go.Figure()
@@ -210,7 +192,7 @@ def bar_payment_type(pag_gb,ab_gb):
         hoverinfo='text',
         hovertext='Percentatge amb el tipus de pagament: '+pag_gb['pctge'].astype(str) +'%'+\
                    '<br>' + 'Número de productors corresponent : '+pag_gb['sum'].astype(int).astype(str),
-        marker_color='#f8cecc',
+        marker_color='#f7b49d',
         opacity=0.75,
         name='Pagesos'
     ))
@@ -233,39 +215,6 @@ def bar_payment_type(pag_gb,ab_gb):
                      xaxis_title_text='Tipus de pagament',
                      yaxis_title_text='Percentatge productors (%)')
     return(fig)
-
-def hist_separate_datasets(data, col, txt):
-    fig = go.Figure()
-    fig.add_trace(go.Histogram(
-        x=data.loc[(data.dataset=='abastiment'), col],
-        xbins=dict( # bins used for histogram
-            start=data[col].min(),
-            end=data[col].max(),
-            size=1
-        ),
-        marker_color='#63022d',
-        opacity=0.75,
-        name='Abastiment'
-    ))
-
-    fig.add_trace(go.Histogram(
-        x=data.loc[(data.dataset=='pagesos'), col],
-        xbins=dict( # bins used for histogram
-            start=data[col].min(),
-            end=data[col].max(),
-            size=1
-        ),
-        marker_color='#f8cecc',
-        opacity=0.75,
-        name='Pagesos'
-    ))
-
-    fig.update_layout(template="plotly_white",
-                      title=txt,
-                     xaxis_title_text='Value',
-                     yaxis_title_text='Count')
-
-    fig.show()
 
 
 def create_df_for_sankey(data):
@@ -293,32 +242,7 @@ def create_df_for_sankey(data):
     df=df[~(df.target=='')]
     df=df[~(df.source=='')]
     
-    ## Uniformizing names of comarcas between the pagesos dataset and the cataloninan comarcas dataset (comarcas_df)
-    standard_names = {
-        'Osona / Lluçanès':'Osona', 
-        'Ribera d’Ebre': 'Ribera d\'Ebre', 
-        'Pla de l’Estany':'Pla de l\'Estany', 
-        'Pla d’Urgell': 'Pla d\'Urgell',
-        'Al Urgell':'Alt Urgell',
-        'Bages-Moianès':'Moianès',
-        'Moianes-Bages':'Moianès',
-        'Barcelona':'Barcelonès',
-        'Maresme-Barcelonès':'Maresme',
-        'Tarragona':'Tarragonès',
-        'Baix Montseny':'Vallès Oriental',
-        'Baixa Cerdanya':'Cerdanya',
-        'Vall Aran':"Vall d'Aran",
-        'Alt Maresme':'Maresme',
-        'Penedès':'Alt Penedès',
-        "Val D'Aran": "Vall d'Aran",
-        'Lluçanès':'Osona', #should we consider it a comarca?
-        "La Seu d'Urgell": 'Alt Urgell',
-        'El Vendrell': 'Baix Penedès',
-        'Baix Llobregates':'Baix Llobregat'
-    }
-    
-    df['target'] = df['target'].replace(standard_names)
-    df['source'] = df['source'].replace(standard_names)
+
     
     
     ##-- Creation of the final df by grouping by (source, target) couples

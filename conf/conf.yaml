@@ -89,6 +89,28 @@ brand_not_duplicates:
       - RAMADERIA CMC, SL
       - RAMADERIA ECOLOGICA, SL
       - SAT PASTURES DEL MONTSENY
+sectors:
+  horta:
+    - vegetables
+    - legumes
+    - mushrooms
+    - herbs_spices
+  fruita: 
+    - fruit
+  cereals:
+    - flour_cereals
+    - rice
+  ramaderia:
+    - meat
+    - charcuterie
+    - eggs
+  elaboracio:
+    - fruit_veggies_products
+    - oil_olives_vinager
+    - bread_pastries
+    - alcohol
+    - dairies
+    - pasta
 buying_method:
   delivery:
     - repart

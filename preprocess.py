@@ -1,4 +1,3 @@
-from pathlib import Path # reads paths in the current OS
 import pandas as pd
 import numpy as np
 import os
@@ -9,16 +8,17 @@ import unicodedata
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 from stop_words import get_stop_words
+from pathlib import Path # reads paths in the current OS
 from PIL import Image
 import location_utils as loc
 
 
 def check_output_files():
     paths = read_paths_data()
-    if os.path.isdir('./output'):
-        coord = os.path.isfile(Path(paths['output_path']) / 'comarca_coordinates.csv')
-        covid = os.path.isfile(Path(paths['output_path']) / 'covid_data.csv')
-        gen   = os.path.isfile(Path(paths['output_path']) / 'vdp_clean.csv')
+    if os.path.isdir(paths['output']):
+        coord = os.path.isfile(Path(paths['output']) / 'comarca_coordinates.csv')
+        covid = os.path.isfile(Path(paths['output']) / 'covid_data.csv')
+        gen   = os.path.isfile(Path(paths['output']) / 'vdp_clean.csv')
         if coord and covid and gen:
             execute = input("It looks like you have all the necessary files for the analysis.\n\
 Do you want to execute the process anyway and update them? (y = yes, n = no): ")
@@ -26,14 +26,17 @@ Do you want to execute the process anyway and update them? (y = yes, n = no): ")
                 execute = input("Please enter 'y' for yes or 'n' for no: ")
         else:
             execute = 'y'
+    else:
+        os.mkdir(paths['output'])
+        execute = 'y'
     return(execute)
 
 
 def check_input_files():
     paths = read_paths_data()
-    pagesos = os.path.isfile(Path(paths['input_path']) / 'db_mesinfo.json')
-    abastiment = os.path.isfile(Path(paths['input_path']) / 'abastiment.csv')
-    data_gen = os.path.isfile(Path(paths['input_path']) / 'Productors_adherits_a_la_venda_de_proximitat.csv')
+    pagesos = os.path.isfile(Path(paths['input']) / 'db_mesinfo.json')
+    abastiment = os.path.isfile(Path(paths['input']) / 'abastiment.csv')
+    data_gen = os.path.isfile(Path(paths['input']) / 'Productors_adherits_a_la_venda_de_proximitat.csv')
 
     if not all([pagesos, abastiment, data_gen]):
         print('It looks like some input files are missing.\n\
@@ -52,9 +55,9 @@ def read_initial_data():
 
     paths = read_paths_data()
 
-    pagesos      = pd.read_json(Path(paths['input_path']) / 'db_mesinfo.json', orient='index').fillna('')
-    abastiment   = pd.read_csv(Path(paths['input_path']) / "abastiment.csv", sep=",").fillna('')
-    data_gen = pd.read_csv(Path(paths['input_path']
+    pagesos      = pd.read_json(Path(paths['input']) / 'db_mesinfo.json', orient='index').fillna('')
+    abastiment   = pd.read_csv(Path(paths['input']) / "abastiment.csv", sep=",").fillna('')
+    data_gen = pd.read_csv(Path(paths['input']
                            ) / 'Productors_adherits_a_la_venda_de_proximitat.csv').fillna('')
 
     data_gen.rename(columns   = {'Marca Comercial':'MARCA'}, inplace=True)
@@ -77,7 +80,7 @@ def read_initial_data():
     pagesos['dataset']    = 'pagesos'
     abastiment['dataset'] = 'abastiment'
 
-    locations_df = pd.read_csv(Path(paths['input_path']) / 'municipis_merge.csv').fillna('')
+    locations_df = pd.read_csv(Path(paths['input']) / 'municipis_merge.csv').fillna('')
 
     stopwords = get_all_stopwords()
     return(pagesos,abastiment,data_gen,locations_df,stopwords,paths,conf)
@@ -177,9 +180,12 @@ def all_add_new_cols(pagesos, abastiment, data_gen, locations_df, conf):
 
     abastiment = abastiment_improve_binary_cols(abastiment, conf)
 
+    pagesos    = create_sectors_col(pagesos,conf['sectors'])
+    abastiment = create_sectors_col(abastiment,conf['sectors'])
+    data_gen   = create_sectors_col(data_gen,conf['sectors'])
+
+    pagesos    = add_payment_combis(pagesos,conf['payment_combis'])
     abastiment = add_payment_combis(abastiment,conf['payment_combis'])
-    pagesos = add_payment_combis(pagesos,conf['payment_combis'])
-    
     return(pagesos, abastiment, data_gen)
 
 def get_payment_methods(data,imp_cols,payment_dict):
@@ -199,7 +205,7 @@ def create_binary_var(data,dic,col):
     text contained in the values of the input dictionary or not'''
     for key, val in dic.items():
         data[key]=0
-        if type(val) == list:
+        if isinstance(val,list):
             vals_to_look_for = r'\b'+r'\b|\b'.join(val)+r'\b'
         else:
             vals_to_look_for = val
@@ -218,6 +224,16 @@ def abastiment_improve_binary_cols(abastiment, conf):
     abastiment.loc[(abastiment['iseco'] == 0) & 
         (abastiment['CCPAE'].isin(['Sí','En conversió'])),'iseco'] = 1
     return(abastiment)
+
+def create_sectors_col(data,dic):
+    '''Create 5 columns with binary values representing if a producer belong to a given sector or not, 
+    as defined in the input dictionary (at least one column of the list of columns related to the sector must be 1)'''
+    for sector, sector_cols in dic.items():
+        if isinstance(sector_cols,list):
+            data = data.assign(**{'is_'+sector:np.where(data[sector_cols].eq(1).any(axis=1),1,0)})
+        else:
+            data = data.assign(**{'is_'+sector:np.where(data[sector_cols].eq(1).any(),1,0)})
+    return(data) 
 
 def add_payment_combis(data,payment_combis):
     for k,v in payment_combis.items():
@@ -335,18 +351,20 @@ def run_project_match(txt, df_col):
 
 
 def save_merged_data(covid_data, data_gen, com_coord, paths):
-    covid_data.to_csv(Path(paths['output_path']) / 'covid_data.csv', index=False)
-    com_coord.to_csv(Path(paths['output_path']) / 'comarca_coordinates.csv', index=False)
+    covid_data.to_csv(Path(paths['output']) / 'covid_data.csv', index=False)
+    com_coord.to_csv(Path(paths['output']) / 'comarca_coordinates.csv', index=False)
     data_gen.drop(['Productes_prep', 'Grups Productes_prep'],axis=1
-             ).to_csv(Path(paths['output_path']) / 'vdp_clean.csv', index=False)
+             ).to_csv(Path(paths['output']) / 'vdp_clean.csv', index=False)
 
 
 def read_final_data():
+    with open(Path('conf') / 'conf.yaml') as file:
+        conf = yaml.full_load(file)
     paths      = read_paths_data()
-    data_gen   = pd.read_csv(Path(paths['output_path']) / 'vdp_clean.csv').fillna('')
+    data_gen   = pd.read_csv(Path(paths['output']) / 'vdp_clean.csv').fillna('')
 
-    covid_data = pd.read_csv(Path(paths['output_path']) / 'covid_data.csv').fillna('')
-    com_coord  = pd.read_csv(Path(paths['output_path']) / 'comarca_coordinates.csv')
-    cat = Image.open(Path(paths['input_path'])
+    covid_data = pd.read_csv(Path(paths['output']) / 'covid_data.csv').fillna('')
+    com_coord  = pd.read_csv(Path(paths['output']) / 'comarca_coordinates.csv')
+    cat = Image.open(Path(paths['input'])
                  /'mapa_comarques_catalunya.png')
-    return(covid_data, data_gen, com_coord, cat)
+    return(covid_data, data_gen, com_coord, conf, cat)

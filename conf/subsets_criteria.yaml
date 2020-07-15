@@ -34,10 +34,10 @@ OnlyDairies:
     - dairies
   off_fields:
     - n_main_prod
-    - isHORTA
-    - isFRUITA
-    - isCEREALS
-    - isRAMADERIA
+    - is_horta
+    - is_fruita
+    - is_cereals
+    - is_ramaderia
     - fruit_veggies_products
     - oil_olives_vinager
     - bread_pastries
@@ -50,20 +50,20 @@ OnlyDairies:
 
 MakeElaborations:
   on_fields:
-    - isELABORACIO
+    - is_elaboracio
   off_fields:
   
 SectRamaderia:
   on_fields:
-    - isRAMADERIA
+    - is_ramaderia
   off_fields:
   
 SectHorta:
   on_fields:
-    - isHORTA
+    - is_horta
   off_fields:
   
 SectFruita:
   on_fields:
-    - isFRUITA
+    - is_fruita
   off_fields:
