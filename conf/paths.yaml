@@ -1,1 +1,2 @@
-input_path: covid_dades/
+input_path: input/
+output_path: output/

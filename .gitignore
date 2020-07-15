@@ -1,7 +1,5 @@
-dadess_dades/34
-dadess_dades/138
+input/old
 *.odp
-*.csv
 *.zip
 *.bin
 *.kml
@@ -9,4 +7,3 @@ dadess_dades/138
 *.html
 *.Rhistory
 *.ipynb_checkpoints
-paths.cfg
