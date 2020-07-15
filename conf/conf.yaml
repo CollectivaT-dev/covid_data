@@ -1,0 +1,451 @@
+payment:
+  targeta: targeta 
+  efectiu: efectiu
+  bizum: bizum 
+  transferencia previa: transferencia
+payment_combis:
+  card: Targeta
+  cash: Efectiu
+  bizum: Bizum
+  trans: Tranferència
+  card+cash: Efectiu + targeta
+  trans+cash: Efectiu + tranferència
+  card+trans: Transferència + targeta
+  card+bizum: Targeta + Bizum
+  cash+bizum: Efectiu + Bizum
+  trans+bizum: Tranferència + Bizum
+comarca_typos:
+  Al Urgell: Alt Urgell
+  Bages-Moianès: Moianès
+  Moianes-Bages: Moianès
+  Barcelona: Barcelonès
+  Maresme-Barcelonès: Maresme
+  Tarragona: Tarragonès
+  Baix Montseny: Vallès Oriental
+  Baixa Cerdanya: Cerdanya
+  Vall Aran: Vall d'Aran
+  Alt Maresme: Maresme
+  Penedès: Alt Penedès
+  Val D'Aran: Vall d'Aran
+  Lluçanès: Osona #should we consider it a comarca?
+brand_not_duplicates:
+  covid: 
+    - Celler Lo
+    - Formatgeria Tiraval
+    - Cor de fruita
+    - Granja can Borrell
+    - Maduixes de Munt
+  gen: 
+    Nom productor:
+      - CAN GEL SCP
+      - CASA BERTRAN SCP
+      - COLET VITICULTORS, SL
+      - COOPERATIVA AGRÍCOLA I CA SANT ISIDRE
+      - ESPELT VITICULTORS
+      - GRANJA EL ROCALL
+      - RAMADERIA AULINA SL
+      - RAMADERIA CMC, SL
+      - FORMATGES ARTESANS DE PONENT SCP
+      - RAMADERIA ECOLOGICA, SL
+      - RAMADERIA SOLÉ, SCP
+      - SAT PASTURES DEL MONTSENY
+    MARCA:
+      - AGROLI
+      - CAN GEL SCP
+      - CAL MESTRET
+      - CAL PUJOLET
+      - CAL ROIO
+      - CASA BERTRAN
+      - CELLER COOPERATIU DE SALELLES
+      - COLET VITICULTORS, SL
+      - COOPERATIVA AGRÍCOLA I CA SANT ISIDRE
+      - EL REBOST DE L'ALEGRIA
+      - ESPELT VITICULTORS, SL
+      - FORMATGES ARTESANS DE PONENT SCP
+      - FRUITES I VERDURES E. CAMPOS
+      - FRUITES I VERDURES PERE I ANA
+      - FRUITES I VERDURES RAMS
+      - GRANJA VIDAL
+      - GRANJA DEL MONTSENY
+      - GRANJA EL ROCALL, S.L.
+      - GRANJA FELIP
+      - HORT DE ANMART
+      - HORTA DE CAL VIU
+      - HORTA DE BEA
+      - HORTALISSES PI
+      - HORTS CA L'ALEGRIA
+      - L'HORT DEL XIQUET
+      - L'HORT D'EN RIPOLL
+      - L'HORT DEL MOLÍ
+      - LA COROMINA
+      - LA FORMATGERIA A TAULL
+      - MAS LA MORA
+      - MAS EL PUIG
+      - MEL DE LA CONCA
+      - OUS ECOLÒGICS DE L'EMPORDÀ
+      - RAIG D'ARBECA
+      - RAMADERIA AULINA
+      - RAMADERIA SOLÉ, SCP
+      - RAMADERIA CMC, SL
+      - RAMADERIA ECOLOGICA, SL
+      - SAT PASTURES DEL MONTSENY
+buying_method:
+  delivery:
+    - repart
+    - domicil
+    - envi
+    - recoll
+    - dists
+    - domicili
+    - casa
+    - porta
+    - cases
+    - enviem
+    - enviament
+    - enviaments
+    - envio
+    - repartim
+    - repartiment
+    - reparto
+    - repartirem
+    - repartiments
+    - reparteix
+    - glovo
+  mail:
+    - correu
+    - correo
+    - mail
+    - email
+    - electronica
+    - electronic
+    - gmail
+  web:
+    - web
+    - online
+    - www
+    - linia
+    - internet
+    - line
+    - https
+    - http
+  pickup:
+    - recollir
+    - recollida
+    - recogida
+    - punts
+    - punt
+    - trobada
+    - presencial
+    - presencialment
+    - finca
+    - camp
+    - masia
+    - magatzem
+    - explotacio
+    - directa
+    - entrega
+    - entregues
+    - entregar
+    - distribuïm
+    - botigues
+    - carnisseries
+  shop:
+    - botiga
+    - agrobotiga
+    - celler
+    - carnisseria
+    - carnisseia
+  market:
+    - mercat
+    - mercats
+  phone:
+    - telefon
+    - telefono
+    - telf
+    - tfn
+    - tel
+    - telefonica
+    - telefonicament
+    - trucar
+    - trucant
+    - tucar
+    - trucan
+    - trucada
+    - mobil
+  orders:
+    - comanda
+    - comandes
+    - reben
+    - contactar
+  whatsapp:
+    - wp
+    - whatsapps
+    - whatsapp
+    - whatsap
+    - whats
+    - whataapp
+    - what
+    - whaap
+    - wattsap
+    - watsup
+    - watssap
+    - watshapp
+    - watsapp
+    - watsap
+    - wassap
+    - wasap
+  socialnet:
+    - xarxes
+    - facebook
+    - twitter
+    - instagram
+    - instragram
+products: 
+  fruit:
+    - fruita
+    - fruites
+    - fruits
+    - figues
+    - cireres
+    - pomes
+    - poma
+    - pera
+    - peres
+    - taronges
+    - taronja
+    - albercocs
+    - albercoc
+    - pruna
+    - pressec
+    - nectarina
+    - anous
+    - nou
+    - nous
+    - avellanes
+    - ametlles
+    - ametlla
+    - maduixes
+    - nabius
+    - llimona
+  vegetables:
+    - hortalisses
+    - verdures
+    - verdura
+    - espinacs
+    - espinac
+    - calçots
+    - patata
+    - patates
+    - ceba
+    - col
+    - cols
+    - coliflors
+    - coliflor
+    - brocolis
+    - brocoli
+    - broquil
+    - carxofas
+    - carxofa
+    - carbasso
+    - carbassa
+    - enciams
+    - enciam
+    - bleda
+    - pastanaga
+    - porro
+    - remolatxa
+    - mongeta
+    - cogombre
+    - tomaquets
+    - nap
+    - alls
+    - horta
+    - hort
+    - cistelles
+  legumes:
+    - llegums
+    - faves
+    - pesol
+    - cigrons
+    - llentia
+    - verdina
+    - cigro
+    - llegum
+  meat:
+    - carn
+    - xai
+    - xais
+    - cabrit
+    - cabrits
+    - vedella
+    - corder
+    - botifarres
+    - botifarra
+    - bistecs
+    - pollastre
+    - pollastres
+    - hamburgueses
+    - porc
+    - embotits
+    - ovella
+    - cabra
+    - fuet
+    - llom
+    - llonganissa
+    - fuets
+    - somaies
+    - xoriç
+    - sobressada
+    - entrecot
+    - filets
+    - xurrasco
+    - cansalada
+  charcuterie:
+    - embotits
+    - fuets
+    - xoriç
+    - fuet
+    - sobressada
+    - llonganissa
+    - botifarres
+    - botifarra
+    - somaies
+  mushrooms:
+    - bolets
+    - bolet
+    - xampinyo
+    - setas
+  rice:
+    - arros
+    - arroç
+    - arrossos
+    - arrosos
+  flour_cereals:
+    - farines
+    - farina
+    - cereals
+    - blats
+    - blat
+    - triticale
+  oil_olives_vinager:
+    - oli
+    - olis
+    - oliva
+    - olives
+    - vinagre
+  eggs: ous
+  dairies:
+    - lactics
+    - llet
+    - formatge
+    - formatges
+    - mato
+    - lleto
+    - iogurt
+    - iogurts
+    - yogurt
+  herbs_spices:
+    - especies
+    - aromatiques
+    - farigola
+    - safra
+    - menta
+    - herbes
+  hygiene_medicines:
+    - higiene
+    - cosmetics
+    - cosmetica
+    - baño
+    - jabon
+    - sabo
+    - sabons
+    - champús
+    - xampu
+    - medicinals
+    - detergents
+    - rentavaixelles
+    - desengreixant
+  alcohol:
+    - vi
+    - vins
+    - vermut
+    - cervesa
+    - cerveses
+    - caves
+    - ratafia
+    - licors
+    - sidra
+    - celler
+  fruit_veggies_products:
+    - suc
+    - sucs
+    - melmelades
+    - mel
+    - mels
+    - cremes
+    - conserves
+    - confitures
+    - germinats
+    - mostassa
+    - salsa
+    - salses
+    - allioli
+    - elaborats
+    - pates
+    - sopes
+    - fruita seca
+  drinks:
+    - cafes
+    - infusions
+    - mate
+    - refresc
+    - begudes
+    - kombutxa
+    - llets
+    - te
+    - kombutxes
+  flowers: flors
+  bread_pastries:
+    - dolços
+    - dolç
+    - galetes
+    - brioxeria
+    - brioixeria
+    - pa
+    - pan
+    - fleca
+    - forner
+    - magdalenes
+    - coca
+  pasta:
+    - pasta
+    - pastes
+  others:
+    - sucre
+    - sucres
+    - llaunes
+    - espirulina
+    - brou
+    - flocs
+    - llavors
+    - concentrat
+    - pinsos
+    - pinso
+    - planter
+    - llenya
+    - tintura
+    - xocolata
+  iseco:
+    - ccpae
+    - certificat
+    - agroecologiques
+    - agroecologica
+    - agroecologic
+    - biologics
+    - certificada
+    - certificacio
+    - ecologic
+    - ecologica
+    - ecologiques
+    - ecologics
+    - eco
