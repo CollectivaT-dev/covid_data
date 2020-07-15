@@ -266,3 +266,76 @@ def hist_separate_datasets(data, col, txt):
                      yaxis_title_text='Count')
 
     fig.show()
+
+
+def create_df_for_sankey(data):
+    ##-- Connections between comarcas
+    ##-- Creating the dataframe needed for sankey diagram (i.e. the list of all the edges between two comarcas),
+    ##-- it will have the following columns: source, target, value.
+    
+    ## Extracting all the target comarcas from the field 'DONDE'
+    df=[]
+
+    for j in range(0,data.shape[0]):
+
+        targets=data.DONDE.iloc[j].split(", ")
+        n_targets=len(targets)
+    
+        if(n_targets>=40):
+            df.append((data.comarca_origin.iloc[j], 'Catalunya', 1))
+        else:
+            for i in range(0,n_targets):
+                df.append((data.comarca_origin.iloc[j], targets[i], 1))
+    
+    df = pd.DataFrame(df, columns=('source', 'target', 'value'))
+    
+    ## Removing records which have no info in the target or in the source field
+    df=df[~(df.target=='')]
+    df=df[~(df.source=='')]
+    
+    ## Uniformizing names of comarcas between the pagesos dataset and the cataloninan comarcas dataset (comarcas_df)
+    standard_names = {
+        'Osona / Lluçanès':'Osona', 
+        'Ribera d’Ebre': 'Ribera d\'Ebre', 
+        'Pla de l’Estany':'Pla de l\'Estany', 
+        'Pla d’Urgell': 'Pla d\'Urgell',
+        'Al Urgell':'Alt Urgell',
+        'Bages-Moianès':'Moianès',
+        'Moianes-Bages':'Moianès',
+        'Barcelona':'Barcelonès',
+        'Maresme-Barcelonès':'Maresme',
+        'Tarragona':'Tarragonès',
+        'Baix Montseny':'Vallès Oriental',
+        'Baixa Cerdanya':'Cerdanya',
+        'Vall Aran':"Vall d'Aran",
+        'Alt Maresme':'Maresme',
+        'Penedès':'Alt Penedès',
+        "Val D'Aran": "Vall d'Aran",
+        'Lluçanès':'Osona', #should we consider it a comarca?
+        "La Seu d'Urgell": 'Alt Urgell',
+        'El Vendrell': 'Baix Penedès',
+        'Baix Llobregates':'Baix Llobregat'
+    }
+    
+    df['target'] = df['target'].replace(standard_names)
+    df['source'] = df['source'].replace(standard_names)
+    
+    
+    ##-- Creation of the final df by grouping by (source, target) couples
+    
+    ## Getting the normalization factor (i.e. the total number of connections per comarca of origin)  
+    df_norm=df.groupby(['source'])['value'] \
+                             .sum() \
+                             .reset_index(name='norm_factor') 
+
+    ## Grouping by the connections with same source-target: 
+    df_edges=df.groupby(['source', 'target'])['value'] \
+                             .sum() \
+                             .reset_index(name='value') \
+                             .sort_values(['value'], ascending=False) \
+
+    ## Adding the normalized factor to the edges df:
+    df_edges=pd.merge(df_edges, df_norm, how='inner', left_on='source', right_on='source')
+    df_edges['norm_value']=df_edges['value'].astype(float)/df_edges['norm_factor'].astype(float)*100
+
+    return(df_edges)
