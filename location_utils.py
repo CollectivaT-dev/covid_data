@@ -9,8 +9,10 @@ def all_comarca_column_prep(pagesos, abastiment, data_gen, locations_df, stopwor
     '''Prepare "comarca_origin" column extracting data from existing columns, removing 
     typos and cheching spelling'''
     pagesos['comarca_origin']    = pagesos['MUNICIPIO'].str.split(')').str.get(-2).str.split('(').str.get(1).fillna('')
-    abastiment['comarca_origin'] = abastiment['COMARCA'].replace(com_typos)
-    data_gen['comarca_origin']   = data_gen['Comarca'].str.title().replace(com_typos)
+    pagesos['DONDE'] = pagesos['DONDE'].replace(com_typos,regex=True)
+    pagesos['comarca_origin'] = pagesos['comarca_origin'].replace(com_typos,regex=True)
+    abastiment['comarca_origin'] = abastiment['COMARCA'].replace(com_typos,regex=True)
+    data_gen['comarca_origin']   = data_gen['Comarca'].str.title().replace(com_typos,regex=True)
 
     pagesos['comarca_origin']    = pagesos['comarca_origin'].apply(lambda x: check_comarca_spelling(
         x,locations_df['Comarca'],stopwords) if x not in locations_df['Comarca'] else x)
@@ -98,7 +100,7 @@ def abastiment_create_donde_col(data,mun_to_com_dict):
     data['DONDE']        = (data['capital']+','+data['municipi']+','+data['comarca_origin']
                                    ).str.strip(',').str.split(',')
     data.drop(['capital','municipi', 'comarca_origin_prep','comarca','provincia'],axis=1,inplace=True)
-    data['DONDE'] = data['DONDE'].apply(lambda x: ','.join(set(x)))
+    data['DONDE'] = data['DONDE'].apply(lambda x: ', '.join(set(x)))
     # to have the same format as pagesos data
     data['DONDE'] = data['DONDE'].str.replace(r'\bCatalunya\b','Tota Catalunya')
     return(data)

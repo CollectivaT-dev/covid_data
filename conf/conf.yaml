@@ -25,16 +25,17 @@ comarca_typos:
   Baixa Cerdanya: Cerdanya
   Vall Aran: Vall d'Aran
   Alt Maresme: Maresme
-  Penedès: Alt Penedès
+  \w*(?<!Alt |aix )Penedès: Alt Penedès
   Val D'Aran: Vall d'Aran
+  Osona / Lluçanès : Osona
   Lluçanès: Osona #should we consider it a comarca?
 brand_not_duplicates:
   covid: 
-    - Celler Lo
-    - Formatgeria Tiraval
-    - Cor de fruita
-    - Granja can Borrell
-    - Maduixes de Munt
+    - Celler Optim
+    - FORMATGERIA LAURA
+    - Cordú Fruits
+    - Granja Can Torrent
+    - Maduixes del Maresme
   gen: 
     Nom productor:
       - CAN GEL SCP

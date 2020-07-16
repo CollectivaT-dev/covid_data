@@ -3,7 +3,5 @@ input/old
 *.zip
 *.bin
 *.kml
-*.json
-*.html
 *.Rhistory
 *.ipynb_checkpoints

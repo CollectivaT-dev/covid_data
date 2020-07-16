@@ -12,6 +12,11 @@ from pathlib import Path # reads paths in the current OS
 from PIL import Image
 import location_utils as loc
 
+def read_yaml(path, filename):
+    filename = filename+'.yaml'
+    with open(Path(path) / filename) as file:
+        f = yaml.full_load(file)
+    return(f)
 
 def check_output_files():
     paths = read_paths_data()
@@ -50,8 +55,7 @@ db_mesinfo.json, abastiment.csv, Productors_adherits_a_la_venda_de_proximitat.cs
 
 def read_initial_data():
     
-    with open(Path('conf') / 'conf.yaml') as file:
-        conf = yaml.full_load(file)
+    conf = read_yaml('conf', 'conf')
 
     paths = read_paths_data()
 
@@ -86,8 +90,7 @@ def read_initial_data():
     return(pagesos,abastiment,data_gen,locations_df,stopwords,paths,conf)
 
 def read_paths_data():
-    with open(Path('conf') / 'paths.yaml') as file:
-        paths = yaml.full_load(file)
+    paths = read_yaml('conf','paths')
     return(paths)
 
 def get_all_stopwords():
@@ -299,7 +302,8 @@ def covid_in_gen(covid_data, data_gen, conf):
 
     for col in ['Nom productor','MARCA']:
         print('Searching matches in column:',col)
-        matches = get_project_matches(data_gen['Nom productor'],covid_data['MARCA'],conf['brand_not_duplicates']['gen'][col])
+        matches = get_project_matches(data_gen['Nom productor'],covid_data['MARCA'],
+            conf['brand_not_duplicates']['gen'][col])
         vdp_matches = pd.concat([vdp_matches, matches],axis=0)
         print("\t =================================\n\n")
         
@@ -321,8 +325,11 @@ def get_project_matches(col1,col2,not_duplicates=None):
 
     # remove false positives
     if not_duplicates != None:
-        to_remove = matches[matches['marca_inicial'].str.contains(r'\b'+r'\b|\b'.join(not_duplicates)+r'\b')]
-        print('\t Matches considered non-matches:\n',to_remove[['marca_inicial','MARCA']])
+        false_pos_to_look = r'\b'+r'\b|\b'.join(not_duplicates)+r'\b'
+        to_remove = matches[matches['marca_inicial'].str.contains(false_pos_to_look)]
+        print('Final matches after removing false positives:\n',
+            matches[~matches['marca_inicial'].str.contains(false_pos_to_look)][
+            ['marca_inicial','MARCA']].to_string(index=False))
         ind = to_remove.index
         matches = matches.drop(ind)
 
@@ -358,8 +365,7 @@ def save_merged_data(covid_data, data_gen, com_coord, paths):
 
 
 def read_final_data():
-    with open(Path('conf') / 'conf.yaml') as file:
-        conf = yaml.full_load(file)
+    conf       = read_yaml('conf','conf')
     paths      = read_paths_data()
     data_gen   = pd.read_csv(Path(paths['output']) / 'vdp_clean.csv').fillna('')
 

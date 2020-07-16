@@ -1,5 +1,9 @@
 import plotly.graph_objects as go
+from ipysankeywidget import SankeyWidget
+from floweaver import weave, ProcessGroup, Bundle, Partition, SankeyDefinition, QuantitativeScale
 import pandas as pd
+import numpy as np
+import preprocess as prep
 
 def plot_map_comarca_points(data,cat,col,txt,max_value,title_name):
     fig = create_figure()
@@ -136,10 +140,12 @@ def pagament_prep(data,pagament):
 
 
 
-def dataset_to_plot(data,vdp,com_coord,n_columns,multiple_origins=False):
+def dataset_to_plot(data,vdp,com_coord,multiple_origins=False):
     '''Counts the values per comarca for the whole dataset and per dataset tipe, 
     computes the mean for those columns that are results of sums, sums the values
     of the other columns and returns the resulting dataset with data per comarca'''
+    n_columns = ['n_main_prod','n_other_prod','n_tot_prod',
+                'n_paym_methods','n_comarcas_delivery']
     n_new = data.groupby('comarca_origin',
                          as_index=False)['MARCA'].count().rename(columns={
                                                                 'MARCA':'total'})
@@ -155,6 +161,7 @@ def dataset_to_plot(data,vdp,com_coord,n_columns,multiple_origins=False):
     if multiple_origins == True:
         n_comarca = get_n_data_per_dataset(data,n_comarca)
 
+    n_columns = [col for col in n_columns if col in data.columns]
     mean_dataset = data[['comarca_origin'] + n_columns].groupby('comarca_origin',
                                                      as_index=False).mean().round(2)
     sum_dataset = data.drop(n_columns,axis=1).groupby('comarca_origin',
@@ -208,8 +215,6 @@ def bar_payment_type(pag_gb,ab_gb):
         name='Abastiment'
     ))
 
-    
-
     fig.update_layout(template="plotly_white",
                       title='Mètodes de pagament',
                      xaxis_title_text='Tipus de pagament',
@@ -217,49 +222,113 @@ def bar_payment_type(pag_gb,ab_gb):
     return(fig)
 
 
-def create_df_for_sankey(data):
-    ##-- Connections between comarcas
-    ##-- Creating the dataframe needed for sankey diagram (i.e. the list of all the edges between two comarcas),
-    ##-- it will have the following columns: source, target, value.
-    
-    ## Extracting all the target comarcas from the field 'DONDE'
-    df=[]
+def plot_sankey_sector(data, com_coord, save=False):
+    sector_list = prep.read_yaml('conf','subsets_criteria')
+    paths = prep.read_yaml('conf','paths')
+    for sector in sector_list.keys():
+        print('-----', sector,'subset -----')
+        dic = sector_list[sector]
+        
+        data_sel = filter_sector_subset(data, dic['on_fields'], dic['off_fields'])
 
-    for j in range(0,data.shape[0]):
-
-        targets=data.DONDE.iloc[j].split(", ")
-        n_targets=len(targets)
-    
-        if(n_targets>=40):
-            df.append((data.comarca_origin.iloc[j], 'Catalunya', 1))
+        #Selecting only the desired subset of producers
+        if data_sel.shape[0] == 0:
+            print('There are no producers in the requested subset: ', subset)
+            continue
         else:
-            for i in range(0,n_targets):
-                df.append((data.comarca_origin.iloc[j], targets[i], 1))
-    
-    df = pd.DataFrame(df, columns=('source', 'target', 'value'))
-    
-    ## Removing records which have no info in the target or in the source field
-    df=df[~(df.target=='')]
-    df=df[~(df.source=='')]
-    
+            #print('Dimension of the subset: ', data_sel.shape)
+            flows = create_df_for_sankey(data_sel, com_coord)
+            ###https://github.com/psychemedia/parlihacks/blob/master/notebooks/MigrantFlow.ipynb)
 
+            sdd = plot_sankey(flows, com_coord)
+            ## New Sankey!
+            size = dict(width=870, height=1000)
+            weave(sdd, flows).to_widget(**size) 
+            
+            display(weave(sdd, flows, link_color=QuantitativeScale('value'), \
+                measures='value').to_widget(**size))
+            if save:
+                ## Saving the plot as svg
+                name = paths['output'] + "sankeydiag_"+sector+".svg"
+                weave(sdd, flows, link_color=QuantitativeScale('value'), \
+                measures='value').to_widget(**size).auto_save_svg(name)
+                #print('File saved in: ', name)
+
+def filter_sector_subset(data, on_fields, off_fields):
+    '''Filter the input data so only producers from a specific 
+    sector are kept. The filter will be based on what fields the
+    sector should have data on and which souldn't'''
+
+    if on_fields is None and off_fields is None:
+        data['is_subset'] = 1
+        
+    elif on_fields is None and off_fields is not None:
+        data['is_subset'] = (np.where(data[off_fields].eq(0).all(axis=1), 1, 0))
+        
+    elif on_fields is not None and off_fields is None:
+        data['is_subset'] = (np.where(data[on_fields].eq(1).all(axis=1), 1, 0))
+        
+    elif on_fields is not None and off_fields is not None:
+        data['flags_on']  = (np.where(data[on_fields].ge(1).all(axis=1), 1, 0))
+        data['flags_off'] = (np.where(data[off_fields].eq(0).all(axis=1), 1, 0))
+        data['is_subset'] = np.where(data[['flags_on', 'flags_off']].sum(axis=1).eq(2),1,0)
+        data.drop(['flags_on','flags_off'], axis=1, inplace=True) 
+        
+    data = data[data.is_subset == 1][['DONDE','comarca_origin']]
+    data = data.query('"NOTFOUND" not in DONDE and "NOTFOUND" not in comarca_origin')
     
+    return(data)
+
+def create_df_for_sankey(data, com_coord):
+    '''Connections between comarcas. Creating the dataframe needed for 
+    sankey diagram (i.e. the list of all the edges between two comarcas),
+    it will have the following columns: source, target, value.'''
     
-    ##-- Creation of the final df by grouping by (source, target) couples
+    #Extracting all the target comarcas from the field 'DONDE'
+    all_cat_ind = data[data.DONDE.str.count(', ') >= 40].index
+    data.loc[all_cat_ind,'DONDE'] = 'Catalunya'
+    data['value'] = 1
+    data.rename(columns={'comarca_origin':'source','DONDE':'target'},inplace=True)
+       
+    #Creation of the final df by grouping by (source, target) couples
     
-    ## Getting the normalization factor (i.e. the total number of connections per comarca of origin)  
-    df_norm=df.groupby(['source'])['value'] \
+    #Getting the normalization factor (i.e. the total number of connections per comarca of origin)  
+    df_norm = data.groupby(['source'])['value'] \
                              .sum() \
                              .reset_index(name='norm_factor') 
 
-    ## Grouping by the connections with same source-target: 
-    df_edges=df.groupby(['source', 'target'])['value'] \
+    #Grouping by the connections with same source-target: 
+    df_edges = data.groupby(['source', 'target'])['value'] \
                              .sum() \
                              .reset_index(name='value') \
                              .sort_values(['value'], ascending=False) \
 
-    ## Adding the normalized factor to the edges df:
-    df_edges=pd.merge(df_edges, df_norm, how='inner', left_on='source', right_on='source')
-    df_edges['norm_value']=df_edges['value'].astype(float)/df_edges['norm_factor'].astype(float)*100
+    #Adding the normalized factor to the edges df:
+    df_edges = pd.merge(df_edges, df_norm, how='inner', left_on='source', right_on='source')
+    df_edges['norm_value'] = df_edges['value'].astype(float)/df_edges['norm_factor'].astype(float)*100
 
-    return(df_edges)
+    return(df_edges[['source', 'target', 'value']])
+
+def plot_sankey(flows, com_coord):
+
+    SankeyWidget(links=flows.to_dict('records'))        
+
+    nodes = {
+        'Comarcas_productoras': ProcessGroup(list(com_coord.comarca.unique())),
+        'Comarcas_entrega'    : ProcessGroup(list(com_coord.comarca.unique())),
+    }
+    # productoras on the left, entrega on the right
+    ordering = sorted([[key] for key,_ in nodes.items()],reverse=True) 
+    bundles = [
+        Bundle(sorted(list(nodes),reverse=True)[0],
+               sorted(list(nodes),reverse=True)[1]),
+    ]
+    comarcas = Partition.Simple('process',list(com_coord.comarca.unique()))
+    
+    # Update the ProcessGroup nodes to use the partitions
+    nodes['Comarcas_productoras'].partition = comarcas
+    nodes['Comarcas_entrega'].partition = comarcas
+
+    sdd = SankeyDefinition(nodes, bundles, ordering)
+
+    return(sdd)

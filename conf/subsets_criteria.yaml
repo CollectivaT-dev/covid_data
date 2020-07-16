@@ -1,20 +1,20 @@
-All:
+all:
   on_fields:
   off_fields:
   
-OnlyMainProd:
+only_main_prod:
   on_fields:
     - n_main_prod
   off_fields:
     - n_other_prod
 
-NoMainProd:
+no_main_prod:
   on_fields:
     - n_other_prod
   off_fields:
     - n_main_prod
 
-OnlyMeat:
+only_meat:
   on_fields:
     - meat
   off_fields:
@@ -22,14 +22,14 @@ OnlyMeat:
     - fruit
     - vegetables
 
-OnlyFruitVeg:
+only_fruit_veg:
   on_fields:
     - n_main_prod
   off_fields:
     - meat
     - n_other_prod
 
-OnlyDairies:
+only_dairies:
   on_fields:
     - dairies
   off_fields:
@@ -48,22 +48,22 @@ OnlyDairies:
     - flowers
     - others
 
-MakeElaborations:
+make_elaborations:
   on_fields:
     - is_elaboracio
   off_fields:
   
-SectRamaderia:
+sect_ramaderia:
   on_fields:
     - is_ramaderia
   off_fields:
   
-SectHorta:
+sect_horta:
   on_fields:
     - is_horta
   off_fields:
   
-SectFruita:
+sect_fruita:
   on_fields:
     - is_fruita
   off_fields:

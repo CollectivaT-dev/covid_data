@@ -34,5 +34,3 @@ if input_f:
 	prep.save_merged_data(covid_data, data_gen, com_coord, paths)
 
 
-	#covid_data, data_gen, com_coord, cat = prep.read_final_data()
-
