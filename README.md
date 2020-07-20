@@ -19,6 +19,11 @@ Payment methods of producer per dataset source:
 
 In order to run the analysis notebook you will need to follow the next steps:
 
+0. Setup a virtual environment
+```
+virtualenv --python=python3 venv
+source venv/bin/activate
+```
 1. Install all the necesary libraries:
 ```bash {cmd}
 pip install -r requirements.txt
@@ -27,11 +32,16 @@ pip install -r requirements.txt
 ```bash {cmd}
 jupyter nbextension enable --py --sys-prefix ipysankeywidget
 ```
-3. Start the notebook server from the command line:
+3. If on virtual environment, add the kernel to jupyter
+```
+python -m ipykernel install --user --name=covid_agro
+```
+4. Start the notebook server from the command line:
 ```bash {cmd}
 jupyter notebook
 ```
-4. Open `analysis.ipynb` on the web browser and run it. The second cell in the notebook will ask if you want to compute the pre-process of the input files. If it's the first time running the code you will need to input 'y' in the window that will appear, input 'n' otherwise.
+If the virtual environment was added as a kernel, choose it among the kernel list, just below the logout button.
+5. Open `analysis.ipynb` on the web browser and run it. The second cell in the notebook will ask if you want to compute the pre-process of the input files. If it's the first time running the code you will need to input 'y' in the window that will appear, input 'n' otherwise.
 
 ## Documentation
 
