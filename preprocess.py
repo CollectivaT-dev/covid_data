@@ -38,10 +38,10 @@ Do you want to execute the process anyway and update them? (y = yes, n = no): ")
 
 
 def check_input_files():
-    paths = read_paths_data()
-    pagesos = os.path.isfile(Path(paths['input']) / 'db_mesinfo.json')
+    paths      = read_paths_data()
+    pagesos    = os.path.isfile(Path(paths['input']) / 'db_mesinfo.json')
     abastiment = os.path.isfile(Path(paths['input']) / 'abastiment.csv')
-    data_gen = os.path.isfile(Path(paths['input']) / 'Productors_adherits_a_la_venda_de_proximitat.csv')
+    data_gen   = os.path.isfile(Path(paths['input']) / 'Productors_adherits_a_la_venda_de_proximitat.csv')
 
     if not all([pagesos, abastiment, data_gen]):
         print('It looks like some input files are missing.\n\
@@ -55,8 +55,7 @@ db_mesinfo.json, abastiment.csv, Productors_adherits_a_la_venda_de_proximitat.cs
 
 def read_initial_data():
     
-    conf = read_yaml('conf', 'conf')
-
+    conf  = read_yaml('conf', 'conf')
     paths = read_paths_data()
 
     pagesos      = pd.read_json(Path(paths['input']) / 'db_mesinfo.json', orient='index').fillna('').replace('’',"'", regex=True)
@@ -193,9 +192,9 @@ def all_add_new_cols(pagesos, abastiment, data_gen, locations_df, conf):
     
     loc.run_text_locations(abastiment, locations_df, ['COM COMPRAR', 'OBSERVACIONS','PRODUCTE(S)','comarca_origin'],
         conf['buying_method']['delivery'])
-
-    locations_df.loc['Municipi'] = r'\b'+ locations_df['Municipi'] +r'\b'
-    mun_to_com_dict = locations_df.set_index('Municipi')['Comarca'].to_dict()
+    locations_df = locations_df.assign(Municipi_reg=r'\b'+ locations_df['Municipi'] +r'\b')
+    #locations_df['Municipi_reg'] = r'\b'+ locations_df['Municipi'] +r'\b'
+    mun_to_com_dict = locations_df.set_index('Municipi_reg')['Comarca'].to_dict()
     abastiment = loc.abastiment_create_donde_col(abastiment,mun_to_com_dict)
 
     # BINARY COLUMNS

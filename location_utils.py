@@ -50,7 +50,7 @@ def run_text_locations(data, locations_df, cols, delivery_patt):
 
 def get_text_locations(df, output_col,col_to_search, locations_df, look_for, delivery_patt):
     '''Apply deliver_to function to run through the registers of the specified 
-    column and look for locations'''
+    column with free text and look for locations'''
     loc_to_iterate = locations_df[(locations_df[look_for+'_prep'].notnull()) & 
                                      (locations_df[look_for+'_prep'] != '')
                                      ][look_for+'_prep'].drop_duplicates()

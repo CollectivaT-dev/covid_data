@@ -9,11 +9,11 @@ New producers per region in Catalunya:
 
 
 Regional logistics:
-[![Logistics sankey](http://g.recordit.co/y6pXmYJcqn.gif)]()
+[![Logistics sankey](http://g.recordit.co/GUbagScowb.gif)]()
 
 
 Payment methods of producer per dataset source:
-[![Payment methods](http://g.recordit.co/gpSiYZxU6L.gif)]()
+[![Payment methods](http://g.recordit.co/yV8suyYMBH.gif)]()
 
 ## Getting started
 
@@ -103,7 +103,7 @@ Using the libraries `plotly` and `Image`:
 - Plot the numbers per comarca with a circle with a normalized size.
 
 ##### Sankey diagram to show the regional logistics
-[![Logistics sankey](http://g.recordit.co/y6pXmYJcqn.gif)]()
+[![Logistics sankey](http://g.recordit.co/GUbagScowb.gif)]()
 
 Some of the producers we're analyzing have opened up the possibility of shipping to other regions and so we wanted to see what movements of product existed between regions. To do so we decided to show the data in a Sankey diagram. To read these, it is important to know some points:
 - In these diagrams, the regions on the left will be the regions of origin and the regions on the right the regions where the products are delivered.
@@ -115,7 +115,7 @@ These diagrams are plotted using the libraries `floweaver` and `ipysankeywidget`
 
 ##### Bar plots to compare producers
 
-[![Payment methods](http://g.recordit.co/gpSiYZxU6L.gif)]()
+[![Payment methods](http://g.recordit.co/yV8suyYMBH.gif)]()
 
 
 

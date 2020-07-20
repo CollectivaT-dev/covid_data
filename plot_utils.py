@@ -291,6 +291,7 @@ def create_df_for_sankey(data):
     data['value'] = 1
     data.rename(columns={'comarca_origin':'source','DONDE':'target'},inplace=True)
     data['target'] = data['target'].str.split(', ')
+
     data = data.explode('target')
     data = data.replace('', np.nan)
        
