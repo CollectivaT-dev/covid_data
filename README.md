@@ -1,10 +1,19 @@
-<a href="https://dadess.cat/"><img src="input/dadess_logo.svg" title="Dadess" alt="Dades d'Economia Social i Solidària"></a>
+<a href="https://dadess.cat/"><img src="input/dadess_logo.svg" width=300 title="Dadess" alt="Dades d'Economia Social i Solidària"></a>
 
-# covid_data
+# SSE activity in Catalunya during COVID-19
 
-The activities of social solidarity economy in Catalunya during the COVID-19 crisis.
+We analyze data for producers that have enabled the possibility to buy their product during the COVID-19 crisis.
 
+New producers per region in Catalunya:
 [![New projects map](http://g.recordit.co/8y9reUk99t.gif)]()
+
+
+Regional logistics:
+[![Logistics sankey](https://recordit.co/y6pXmYJcqn)]()
+
+
+Payment methods of producer per dataset source:
+[![Payment methods](https://recordit.co/gpSiYZxU6L)]()
 
 ## Getting started
 
@@ -25,6 +34,8 @@ jupyter notebook
 4. Open `analysis.ipynb` on the web browser and run it. The second cell in the notebook will ask if you want to compute the pre-process of the input files. If it's the first time running the code you will need to input 'y' in the window that will appear, input 'n' otherwise.
 
 ## Documentation
+
+### Summary
 
 Schools, restaurants, food markets and other closed due to the COVID-19 pandemic. Farmers and agricultural and artesanal projects that usually provided those places with food did not have where to sell their product. The response of these projects was to enable a way for people to place orders (via telephone, online, etc.) and shipping to some areas.
 
@@ -58,17 +69,16 @@ Because the data is coming from different sources, we need to unify it. This ent
 	- Binary columns. Columns with a 1 when project matches the specified category or filter by the column name and 0 when it does not. Some of these columns indicate whether the producer sells meat or not (same with fruit, vegetables and other categories), whether it has a specific payment method (or combination of payment methods available) or not.
 	- Count columns. These columns contain numbers representing the number of main product a producer sells (defyning main as meat, vegetables or fruits), other products, total products, payment methods and regions with delivery available.
 - <b>Detect duplicates</b>. For the two data sources of new projects we need to check if some producers/brands are present in both of them. It is also interesting to know if any of the new projects were also registered as local trade before. We use <b>exact and fuzzy matching</b> to detect name duplicates. In the case of the fuzzy matching we take into account two different metrics, the ratio and the partial ratio:
-```
-fuzz.ratio("Social Solidarity Economy", "Social Solidarity Economics")
-> 96
-
-fuzz.ratio("Social Solidarity Economy (SSE)", "SSE")
-> 18
-fuzz.partial_ratio("Social Solidarity Economy (SSE)", "SSE")
-> 67
-```
-When a duplicate is found between the two datasets with new projects data, we will keep the information pertaining to the dataset with the most complete info. 
-When a new project has a duplicate in the local trade dataset, we will only place a 1 in a new column.
+	```
+	fuzz.ratio("Social Solidarity Economy", "Social Solidarity Economics")
+	> 96
+	fuzz.ratio("Social Solidarity Economy (SSE)", "SSE")
+	> 18
+	fuzz.partial_ratio("Social Solidarity Economy (SSE)", "SSE")
+	> 67
+	```
+	When a duplicate is found between the two datasets with new projects data, we will keep the information pertaining to the dataset with the most complete info. 
+	When a new project has a duplicate in the local trade dataset, we will only place a 1 in a new column.
 
 At the end of all this steps, we will have a dataset with the information with both sources with new projects with new columns.
 
@@ -82,14 +92,16 @@ We ended up using 3 different plots:
 - [Bar plots.](#bar-plots-to-compare-producers)
 
 ##### Map with points in each region
-[New projects map](http://g.recordit.co/8y9reUk99t.gif)
+[![New projects map](http://g.recordit.co/8y9reUk99t.gif)]()
 
 A quicker way to plot data in a map without having to look for the geometric data of the desired region is to use a map image.
 
 ##### Sankey diagram to show the regional logistics
-
+[![Logistics sankey](https://recordit.co/y6pXmYJcqn)]()
 
 ##### Bar plots to compare producers
+
+[![Payment methods](https://recordit.co/gpSiYZxU6L)]()
 
 
 
