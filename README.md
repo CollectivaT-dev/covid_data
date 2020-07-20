@@ -4,7 +4,7 @@
 
 The activities of social solidarity economy in Catalunya during the COVID-19 crisis.
 
-[New projects map](http://g.recordit.co/8y9reUk99t.gif)
+[![New projects map](http://g.recordit.co/8y9reUk99t.gif)]()
 
 ## Getting started
 
