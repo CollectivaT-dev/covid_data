@@ -9,11 +9,11 @@ New producers per region in Catalunya:
 
 
 Regional logistics:
-[![Logistics sankey](https://recordit.co/y6pXmYJcqn)]()
+[![Logistics sankey](http://g.recordit.co/GUbagScowb.gif)]()
 
 
 Payment methods of producer per dataset source:
-[![Payment methods](https://recordit.co/gpSiYZxU6L)]()
+[![Payment methods](http://g.recordit.co/yV8suyYMBH.gif)]()
 
 ## Getting started
 
@@ -92,6 +92,8 @@ Because the data is coming from different sources, we need to unify it. This ent
 
 At the end of all this steps, we will have a dataset with the information with both sources with new projects with new columns.
 
+To help with the representations later, we also use the library `geopy` to obtain the latitude and longitud of each region in Catalunya. 
+
 #### Analysis
 
 Catalonia is divided in 4 provinces (Barcelonès, Gironès, Lleida, Tarragonès) and can also be divided in 42 comarques (regions). Based on resources, these regions can be more prone to agriculture, livestock, wine production, etc. Thus, we decided to do the majority of analysis at a region level.
@@ -105,13 +107,25 @@ We ended up using 3 different plots:
 [![New projects map](http://g.recordit.co/8y9reUk99t.gif)]()
 
 A quicker way to plot data in a map without having to look for the geometric data of the desired region is to use a map image.
+Using the libraries `plotly` and `Image`:
+- We import a map of Catalunya in an image format. The positions of the image will correspond to max and min latitude and longitude of the map.
+- Compute the number per comarca that we want to plot over the map.
+- Plot the numbers per comarca with a circle with a normalized size.
 
 ##### Sankey diagram to show the regional logistics
-[![Logistics sankey](https://recordit.co/y6pXmYJcqn)]()
+[![Logistics sankey](http://g.recordit.co/GUbagScowb.gif)]()
+
+Some of the producers we're analyzing have opened up the possibility of shipping to other regions and so we wanted to see what movements of product existed between regions. To do so we decided to show the data in a Sankey diagram. To read these, it is important to know some points:
+- In these diagrams, the regions on the left will be the regions of origin and the regions on the right the regions where the products are delivered.
+- If there is a line that goes from a region on the left to a region on the right it's because there are some producers from the first that deliver to the latter.
+- The width of the region itself (not the line between regions) is directly proportional to the number of producers in said region (i.e. a region with a wider line will contain more producers than a region with a smaller one).
+- The depth of color of the line between regions is directly proportional to the number of producers that deliver from the region of origin of the line to the region of delivery of the line (i.e. a darker line will mean more producers with that delivery "route").
+
+These diagrams are plotted using the libraries `floweaver` and `ipysankeywidget`.
 
 ##### Bar plots to compare producers
 
-[![Payment methods](https://recordit.co/gpSiYZxU6L)]()
+[![Payment methods](http://g.recordit.co/yV8suyYMBH.gif)]()
 
 
 
