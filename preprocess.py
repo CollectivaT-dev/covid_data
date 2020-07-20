@@ -59,10 +59,10 @@ def read_initial_data():
 
     paths = read_paths_data()
 
-    pagesos      = pd.read_json(Path(paths['input']) / 'db_mesinfo.json', orient='index').fillna('')
-    abastiment   = pd.read_csv(Path(paths['input']) / "abastiment.csv", sep=",").fillna('')
+    pagesos      = pd.read_json(Path(paths['input']) / 'db_mesinfo.json', orient='index').fillna('').replace('’',"'", regex=True)
+    abastiment   = pd.read_csv(Path(paths['input']) / "abastiment.csv", sep=",").fillna('').replace('’',"'", regex=True)
     data_gen = pd.read_csv(Path(paths['input']
-                           ) / 'Productors_adherits_a_la_venda_de_proximitat.csv').fillna('')
+                           ) / 'Productors_adherits_a_la_venda_de_proximitat.csv').fillna('').replace('’',"'", regex=True)
 
     data_gen.rename(columns   = {'Marca Comercial':'MARCA'}, inplace=True)
     abastiment.rename(columns = {'PROJECTE':'MARCA'}, inplace=True)
@@ -81,10 +81,15 @@ def read_initial_data():
                                  'Verdura*:': 'VERDURA', 
                                  'Flor i planta ornamental:':'FLORES'}, inplace=True)
 
+    for col in ['COMARCA','MUNICIPI']:
+        abastiment[col] = abastiment[col].str.title()
+
     pagesos['dataset']    = 'pagesos'
     abastiment['dataset'] = 'abastiment'
 
     locations_df = pd.read_csv(Path(paths['input']) / 'municipis_merge.csv').fillna('')
+    for col in locations_df.columns:
+        locations_df[col] = locations_df[col].str.title()
 
     stopwords = get_all_stopwords()
     return(pagesos,abastiment,data_gen,locations_df,stopwords,paths,conf)
@@ -101,7 +106,7 @@ def get_all_stopwords():
                    'a', 'cap', 'hi', 'ni', 'no']
     stopwords.extend(new_stopwords)
     return(stopwords)
-
+    
 
 def all_prep_dataset(pagesos, abastiment, data_gen, locations_df, stopwords):
     '''Apply the pre-process to each dataframe specifying which columns to apply it to'''
@@ -152,32 +157,57 @@ def pagesos_food(pagesos):
     pagesos.loc[pagesos.FRUTA   != '', 'fruit']     =1
     pagesos.loc[pagesos.CARNE   != '', 'meat']      =1
     pagesos.loc[pagesos.FLORES  != '', 'flowers']   =1
+    cols = ['vegetables','fruit','meat','flowers']
+    pagesos[cols] = pagesos[cols].replace(np.nan, 0)
     return(pagesos)
+
+
+def abastiment_payment_col(abastiment, payment_dict):
+    # PAYMENT COLUMN
+    abastiment = get_payment_methods(abastiment,['COM COMPRAR', 'OBSERVACIONS','PRODUCTE(S)'],
+        payment_dict)
+    return(abastiment)
+
+def get_payment_methods(data,imp_cols,payment_dict):
+    '''Creates a new column containing a list of the different payment
+    methods found in the free text fields'''
+    data['PAGO_prep'] = ''
+    for c in [x+'_prep' for x in imp_cols]:
+        for k,v in payment_dict.items():
+            paym_word  = pre_process(v)
+            data_pay_w = data[data[c].str.contains(r'\b'+paym_word+r'\b')]
+            if data_pay_w.shape[0]!=0:
+                ind = data_pay_w.index
+                data.loc[ind,'PAGO_prep'] = data.loc[ind]['PAGO_prep'] +','+ paym_word
+    data['PAGO_prep'] = data['PAGO_prep'].str.strip(',')
+    return(data)
 
 
 def all_add_new_cols(pagesos, abastiment, data_gen, locations_df, conf):
     '''Apply the functions to obtain new columns for the dataframes
     related with payment method, locations and binary variables'''
 
-    # PAYMENT COLUMN
-    abastiment = get_payment_methods(abastiment,['COM COMPRAR', 'OBSERVACIONS','PRODUCTE(S)'],
-        conf['payment'])
-
     # LOCATIONS COLUMN
     # Dictionary to translate municipis to comarca
-    mun_to_com_dict = locations_df[locations_df['Municipi']!=''].set_index('Municipi')['Comarca'].to_dict()
+    locations_df = locations_df[locations_df['Municipi']!='']
+    
     loc.run_text_locations(abastiment, locations_df, ['COM COMPRAR', 'OBSERVACIONS','PRODUCTE(S)','comarca_origin'],
         conf['buying_method']['delivery'])
+
+    locations_df.loc['Municipi'] = r'\b'+ locations_df['Municipi'] +r'\b'
+    mun_to_com_dict = locations_df.set_index('Municipi')['Comarca'].to_dict()
     abastiment = loc.abastiment_create_donde_col(abastiment,mun_to_com_dict)
 
     # BINARY COLUMNS
+    already_pag_cols = ['meat','vegetables','fruit','flowers']
+    pagesos_bin_prod = {key:value for key, value in conf['products'].items() if key not in already_pag_cols}
     # create binary variables representing whether they have a type of product (1) or not
-    create_binary_var(pagesos,conf['products'],'OTROS'+'_prep')
+    create_binary_var(pagesos,pagesos_bin_prod,'OTROS'+'_prep')
     create_binary_var(abastiment,conf['products'],'PRODUCTE(S)'+'_prep')
     create_binary_var(data_gen,conf['products'],'Productes'+'_prep')
     # create binary variables representing whether they have a payment method or not
-    create_binary_var(pagesos,conf['payment'],'PAGO'+'_prep')
-    create_binary_var(abastiment,conf['payment'],'PAGO')
+    create_binary_var(pagesos,conf['payment'],'PAGO_prep')
+    create_binary_var(abastiment,conf['payment'],'PAGO_prep')
     # create binary variables representing whether they have a type payment method, contact info... (1) or not
     create_binary_var(abastiment,conf['buying_method'],'COM COMPRAR'+'_prep')
 
@@ -187,21 +217,9 @@ def all_add_new_cols(pagesos, abastiment, data_gen, locations_df, conf):
     abastiment = create_sectors_col(abastiment,conf['sectors'])
     data_gen   = create_sectors_col(data_gen,conf['sectors'])
 
-    pagesos    = add_payment_combis(pagesos,conf['payment_combis'])
-    abastiment = add_payment_combis(abastiment,conf['payment_combis'])
+    pagesos    = add_payment_combis(pagesos,dict(conf['payment'], **conf['payment']))
+    abastiment = add_payment_combis(abastiment,dict(conf['payment'], **conf['payment']))
     return(pagesos, abastiment, data_gen)
-
-def get_payment_methods(data,imp_cols,payment_dict):
-    '''Creates a new column containing a list of the different payment
-    methods found in the free text fields'''
-    data['PAGO'] = ''
-    for c in [x+'_prep' for x in imp_cols]:
-        for k,v in payment_dict.items():
-            if data[data[c].str.contains(r'\b'+v+r'\b')].shape[0]!=0:
-                ind = data[data[c].str.contains(r'\b'+v+r'\b')].index
-                data.loc[ind,'PAGO'] = data.loc[ind]['PAGO'] +','+ k
-    data['PAGO'] = data['PAGO'].str.strip(',')
-    return(data)
 
 def create_binary_var(data,dic,col):
     '''Create a column with binary values based on if the input column has the 
@@ -209,8 +227,10 @@ def create_binary_var(data,dic,col):
     for key, val in dic.items():
         data[key]=0
         if isinstance(val,list):
+            val = [pre_process(v) for v in val]
             vals_to_look_for = r'\b'+r'\b|\b'.join(val)+r'\b'
         else:
+            val = pre_process(val)
             vals_to_look_for = val
         data.loc[data[col].str.contains(vals_to_look_for),key] = 1
 
@@ -266,8 +286,8 @@ def compute_numerical_cols(data,conf,more_data = False):
     cols_other_products = [col for col in list(conf['products'].keys()
         ) if col not in cols_main_products+['iseco']]
 
-    data['n_main_prod']  = data[cols_main_products].sum(axis=1)
-    data['n_other_prod'] = data[cols_other_products].sum(axis=1)
+    data['n_main_prod']  = data[cols_main_products].replace('', np.nan).sum(axis=1)
+    data['n_other_prod'] = data[cols_other_products].replace('', np.nan).sum(axis=1)
     data['n_tot_prod']   = data['n_main_prod'] + data['n_other_prod']
 
     if more_data==True:
@@ -364,6 +384,8 @@ def save_merged_data(covid_data, data_gen, com_coord, paths):
              ).to_csv(Path(paths['output']) / 'vdp_clean.csv', index=False)
 
 
+
+# ANALYSIS
 def read_final_data():
     conf       = read_yaml('conf','conf')
     paths      = read_paths_data()

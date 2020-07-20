@@ -127,12 +127,12 @@ def pagament_prep(data,pagament):
     ab.rename(columns=pagament,inplace=True)
     pag.rename(columns=pagament,inplace=True)
 
-    ab_gb = pd.DataFrame(ab[list(pagament.values())].sum(),columns=['sum'])
+    ab_gb = pd.DataFrame(ab[list(pagament.values())].replace('', np.nan).sum(),columns=['sum'])
     ab_gb['pctge'] = ab_gb['sum']/ab.shape[0]*100
     #ab_gb = ab_gb.sort_values(by='pctgeascending=False)
     ab_gb = ab_gb.round(2)
     
-    pag_gb = pd.DataFrame(pag[list(pagament.values())].sum(),columns=['sum'])
+    pag_gb = pd.DataFrame(pag[list(pagament.values())].replace('', np.nan).sum(),columns=['sum'])
     pag_gb['pctge'] = pag_gb['sum']/pag.shape[0]*100
     pag_gb = pag_gb.sort_values(by='pctge',ascending=False)
     pag_gb = pag_gb.round(2)
@@ -156,6 +156,7 @@ def dataset_to_plot(data,vdp,com_coord,multiple_origins=False):
     n_comarca['pctge_new'] = n_comarca['total']/n_comarca['n_before']*100
     n_comarca['pctge_new'] = n_comarca['pctge_new'].astype(int)
 
+    data = data.replace('', np.nan)
     # if the input dataset contains data from abastiment + pagesos, we will 
     # compute the number per dataset also 
     if multiple_origins == True:
@@ -237,7 +238,7 @@ def plot_sankey_sector(data, com_coord, save=False):
             continue
         else:
             #print('Dimension of the subset: ', data_sel.shape)
-            flows = create_df_for_sankey(data_sel, com_coord)
+            flows = create_df_for_sankey(data_sel)
             ###https://github.com/psychemedia/parlihacks/blob/master/notebooks/MigrantFlow.ipynb)
 
             sdd = plot_sankey(flows, com_coord)
@@ -269,17 +270,17 @@ def filter_sector_subset(data, on_fields, off_fields):
         data['is_subset'] = (np.where(data[on_fields].eq(1).all(axis=1), 1, 0))
         
     elif on_fields is not None and off_fields is not None:
-        data['flags_on']  = (np.where(data[on_fields].ge(1).all(axis=1), 1, 0))
+        data['flags_on']  = (np.where(data[on_fields].replace('', np.nan).ge(1).all(axis=1), 1, 0))
         data['flags_off'] = (np.where(data[off_fields].eq(0).all(axis=1), 1, 0))
         data['is_subset'] = np.where(data[['flags_on', 'flags_off']].sum(axis=1).eq(2),1,0)
         data.drop(['flags_on','flags_off'], axis=1, inplace=True) 
         
     data = data[data.is_subset == 1][['DONDE','comarca_origin']]
-    data = data.query('"NOTFOUND" not in DONDE and "NOTFOUND" not in comarca_origin')
+    data = data.query('not DONDE.str.contains("NOTFOUND") and not comarca_origin.str.contains("NOTFOUND")')
     
     return(data)
 
-def create_df_for_sankey(data, com_coord):
+def create_df_for_sankey(data):
     '''Connections between comarcas. Creating the dataframe needed for 
     sankey diagram (i.e. the list of all the edges between two comarcas),
     it will have the following columns: source, target, value.'''
@@ -289,6 +290,9 @@ def create_df_for_sankey(data, com_coord):
     data.loc[all_cat_ind,'DONDE'] = 'Catalunya'
     data['value'] = 1
     data.rename(columns={'comarca_origin':'source','DONDE':'target'},inplace=True)
+    data['target'] = data['target'].str.split(', ')
+    data = data.explode('target')
+    data = data.replace('', np.nan)
        
     #Creation of the final df by grouping by (source, target) couples
     
@@ -310,6 +314,7 @@ def create_df_for_sankey(data, com_coord):
     return(df_edges[['source', 'target', 'value']])
 
 def plot_sankey(flows, com_coord):
+    com_coord = com_coord.append({'comarca':'Catalunya','latitude':0,'longitude':0},ignore_index=True)
 
     SankeyWidget(links=flows.to_dict('records'))        
 

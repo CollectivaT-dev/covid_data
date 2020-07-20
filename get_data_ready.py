@@ -16,6 +16,9 @@ if input_f:
 	pagesos, abastiment, data_gen = prep.all_prep_dataset(pagesos, abastiment, data_gen, locations,
 		stopwords)
 
+	print('Adding payment column to abastiment dataset')
+	abastiment = prep.abastiment_payment_col(abastiment, conf['payment'])
+
 	print('Add new columns to the datasets')
 	pagesos, abastiment, data_gen = prep.all_add_new_cols(pagesos, abastiment, data_gen, locations, 
 	    conf)

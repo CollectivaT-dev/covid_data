@@ -1,13 +1,9 @@
 payment:
-  targeta: targeta 
-  efectiu: efectiu
-  bizum: bizum 
-  transferencia previa: transferencia
+  targeta: Targeta 
+  efectiu: Efectiu
+  bizum: Bizum 
+  transferencia previa: Transferència
 payment_combis:
-  card: Targeta
-  cash: Efectiu
-  bizum: Bizum
-  trans: Tranferència
   card+cash: Efectiu + targeta
   trans+cash: Efectiu + tranferència
   card+trans: Transferència + targeta
@@ -21,11 +17,14 @@ comarca_typos:
   Barcelona: Barcelonès
   Maresme-Barcelonès: Maresme
   Tarragona: Tarragonès
+  Baix Llobregates: Baix Llobregat
   Baix Montseny: Vallès Oriental
   Baixa Cerdanya: Cerdanya
+  El Vendrell: Baix Penedès
   Vall Aran: Vall d'Aran
   Alt Maresme: Maresme
   \w*(?<!Alt |aix )Penedès: Alt Penedès
+  \w*(?<!Alt |aix |a D\')Urgell: Baix Urgell
   Val D'Aran: Vall d'Aran
   Osona / Lluçanès : Osona
   Lluçanès: Osona #should we consider it a comarca?
@@ -308,6 +307,7 @@ products:
     - pollastre
     - pollastres
     - hamburgueses
+    - poltre
     - porc
     - embotits
     - ovella
