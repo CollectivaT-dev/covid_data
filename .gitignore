@@ -5,3 +5,5 @@ input/old
 *.kml
 *.Rhistory
 *.ipynb_checkpoints
+venv/
+__pycache__/
