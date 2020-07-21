@@ -57,6 +57,8 @@ We compared two data sources of new projects with data from projects registered 
 - [Unió de Pagesos](https://uniopagesos.cat/): [Pagesia a casa](https://pagesiaacasa.cat/)
 - [Local trade producers](https://analisi.transparenciacatalunya.cat/en/Comer-/Productors-adherits-a-la-venda-de-proximitat/xmyy-7xqi)
 
+The structured versions of the data can be found in [dadess open data platform](https://open.dadess.cat).
+
 The analysis will consist on 3 main parts:
 - A comparison between the data of the new projects and the local trade producers.
 - Analysis of the new projects.
