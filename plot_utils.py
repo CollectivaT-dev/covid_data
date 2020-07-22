@@ -1,53 +1,55 @@
 import plotly.graph_objects as go
 from ipysankeywidget import SankeyWidget
 from floweaver import weave, ProcessGroup, Bundle, Partition, SankeyDefinition, QuantitativeScale
+from IPython.display import SVG,display
+import re
+import os
+from pathlib import Path 
+from os import listdir
+from os.path import isfile
 import pandas as pd
 import numpy as np
 import preprocess as prep
 
-def plot_map_comarca_points(data,cat,col,txt,max_value,title_name):
+def plot_map_comarca_points(data,cat,col,trace_type,txt,title_name,save):
     fig = create_figure()
-    fig = add_trace_plot(fig,data,col,txt,max_value,m_color='#63022d',series_name='Resposta covid')
+    fig = add_trace_plot(fig,data,col,trace_type,txt,m_color='#63022d',series_name='Resposta covid')
     fig = plot_layout(fig,cat,title_name)
+    if save:
+        paths = prep.read_yaml('conf','paths')        
+        name  = paths['output'] + re.sub(':| ', '_',title_name) +".pdf"
+        fig.write_image(name)
+        print('Map saved to:',name)
     return(fig)
 
 def create_figure():
     fig = go.Figure()
     return(fig)
 
-def add_trace_plot(fig,data,col,txt,max_value,m_color,series_name):
+def add_trace_plot(fig,data,col,trace_type,txt,m_color,series_name=None):
     max_size = 40
-      # Add trace
-    fig.add_trace(
-        go.Scatter(x=data['longitude'],
-                   y=data['latitude'],
-                   mode='markers',
-                   hoverinfo='text',
-                  hovertext='Comarca: '+data['comarca_origin'] +\
-                   '<br>' + 'Productors '+txt+': '+data[col].astype(int).astype(str),
-                  marker=dict(size=data[col]*(max_size/max_value),
-                             color=m_color),
-                  name=series_name)
-    )
-    return(fig)
-
-def add_trace_text_plot(fig,data,col,txt,max_value,m_color):
-    max_size = 40
-    if 'pctge' in col:
-        text_col = data[col].astype(int).astype(str)+'%' 
+    max_value = data[col].max()
+    if trace_type == 'text':
+        plot_mode = 'markers+text'
+        if 'pctge' in col:
+            text_col = '<b>'+data[col].astype(int).astype(str)+'%</b>'
+        else:
+            text_col = '<b>'+data[col].astype(int).astype(str) + '</b>'
     else:
-        text_col = data[col].astype(int).astype(str)
+        plot_mode='markers'
+        text_col = ''
     fig.add_trace(
         go.Scatter(x=data['longitude'],
                    y=data['latitude'],
-                   text='<b>'+text_col + '</b>',
-                   mode='markers+text',
+                   text=text_col,
+                   mode=plot_mode,
                    hoverinfo='text',
-                  hovertext='Comarca: '+data['comarca_origin'] +\
+                  hovertext='Comarca: '+data['comarca'].astype(str) +\
                    '<br>' + 'Productors '+txt+': '+data['total'].astype(int).astype(str),
                   marker=dict(size=data[col]*(max_size/max_value),
-                             color='#63022d'),
-                   textposition="top center"
+                             color=m_color),
+                   textposition="top center",
+                   name=series_name
                   )
     )
     return(fig)
@@ -55,7 +57,7 @@ def add_trace_text_plot(fig,data,col,txt,max_value,m_color):
 def plot_layout(fig,cat,title_name):
     x_low,x_up = 0.18,3.3
     y_low,y_up = 40.5,42.9
-      # Add images
+    # Add images
     fig.add_layout_image(
             dict(
                 source=cat,
@@ -169,7 +171,7 @@ def dataset_to_plot(data,vdp,com_coord,multiple_origins=False):
                                                   as_index=False).sum().merge(com_coord,
                                                           left_on='comarca_origin',
                                                          right_on='comarca',
-                                                                             how='left')
+                                                                             how='right')
     to_plot = n_comarca.merge(sum_dataset,
                           on='comarca_origin',
                           how='outer').merge(mean_dataset,
@@ -224,10 +226,10 @@ def bar_payment_type(pag_gb,ab_gb):
 
 
 def plot_sankey_sector(data, com_coord, save=False):
+    
+    paths       = prep.read_yaml('conf','paths')
     sector_list = prep.read_yaml('conf','subsets_criteria')
-    paths = prep.read_yaml('conf','paths')
     for sector in sector_list.keys():
-        print('-----', sector,'subset -----')
         dic = sector_list[sector]
         
         data_sel = filter_sector_subset(data, dic['on_fields'], dic['off_fields'])
@@ -235,7 +237,6 @@ def plot_sankey_sector(data, com_coord, save=False):
         #Selecting only the desired subset of producers
         if data_sel.shape[0] == 0:
             print('There are no producers in the requested subset: ', subset)
-            continue
         else:
             #print('Dimension of the subset: ', data_sel.shape)
             flows = create_df_for_sankey(data_sel)
@@ -244,16 +245,13 @@ def plot_sankey_sector(data, com_coord, save=False):
             sdd = plot_sankey(flows, com_coord)
             ## New Sankey!
             size = dict(width=870, height=1000)
-            weave(sdd, flows).to_widget(**size) 
             
-            display(weave(sdd, flows, link_color=QuantitativeScale('value'), \
-                measures='value').to_widget(**size))
-            if save:
-                ## Saving the plot as svg
-                name = paths['output'] + "sankeydiag_"+sector+".svg"
-                weave(sdd, flows, link_color=QuantitativeScale('value'), \
-                measures='value').to_widget(**size).auto_save_svg(name)
-                #print('File saved in: ', name)
+            name = paths['output'] + "sankeydiag_"+sector+".svg"
+
+            wid = weave(sdd, flows, link_color=QuantitativeScale('value'), \
+            measures='value').to_widget(**size)
+            wid.auto_save_svg(name)
+            display(wid)
 
 def filter_sector_subset(data, on_fields, off_fields):
     '''Filter the input data so only producers from a specific 
@@ -338,3 +336,12 @@ def plot_sankey(flows, com_coord):
     sdd = SankeyDefinition(nodes, bundles, ordering)
 
     return(sdd)
+
+
+
+def display_sankey_svg():
+    paths       = prep.read_yaml('conf','paths')
+    onlyfiles   = [f for f in listdir(paths['output']) if isfile(Path(paths['output']) / f)]
+    sankeyfiles = [Path(paths['output']) / f for f in onlyfiles if 'sankey' in f and '.svg' in f]
+    for sankeyf in sankeyfiles:
+        display(SVG(sankeyf))
