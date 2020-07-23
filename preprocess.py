@@ -193,7 +193,6 @@ def all_add_new_cols(pagesos, abastiment, data_gen, locations_df, conf):
     loc.run_text_locations(abastiment, locations_df, ['COM COMPRAR', 'OBSERVACIONS','PRODUCTE(S)','comarca_origin'],
         conf['buying_method']['delivery'])
     locations_df = locations_df.assign(Municipi_reg=r'\b'+ locations_df['Municipi'] +r'\b')
-    #locations_df['Municipi_reg'] = r'\b'+ locations_df['Municipi'] +r'\b'
     mun_to_com_dict = locations_df.set_index('Municipi_reg')['Comarca'].to_dict()
     abastiment = loc.abastiment_create_donde_col(abastiment,mun_to_com_dict)
 

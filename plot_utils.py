@@ -3,7 +3,6 @@ from ipysankeywidget import SankeyWidget
 from floweaver import weave, ProcessGroup, Bundle, Partition, SankeyDefinition, QuantitativeScale
 from IPython.display import SVG,display
 import re
-import os
 from pathlib import Path 
 from os import listdir
 from os.path import isfile
@@ -19,7 +18,7 @@ def plot_map_comarca_points(data,cat,col,trace_type,txt,title_name,save):
         paths = prep.read_yaml('conf','paths')        
         name  = paths['output'] + re.sub(':| ', '_',title_name) +".pdf"
         fig.write_image(name)
-        print('Map saved to:',name)
+        #print('Map saved to:',name)
     return(fig)
 
 def create_figure():
@@ -87,13 +86,13 @@ def plot_layout(fig,cat,title_name):
 
 def bar_perc_separate_datasets(data,col,txt):
     rep_txt = txt.replace('Mitja','Percentatge')
-    ab,pag = separate_ab_from_pag_data(data)
+    ab,pag  = separate_ab_from_pag_data(data)
 
-    ab_gb = ab.groupby(col)['MARCA'].count()/ab.shape[0]*100
-    ab_gb = ab_gb.round(2)
+    ab_gb   = ab.groupby(col)['MARCA'].count()/ab.shape[0]*100
+    ab_gb   = ab_gb.round(2)
     
-    pag_gb = pag.groupby(col)['MARCA'].count()/pag.shape[0]*100
-    pag_gb = pag_gb.round(2)
+    pag_gb  = pag.groupby(col)['MARCA'].count()/pag.shape[0]*100
+    pag_gb  = pag_gb.round(2)
 
     fig = go.Figure()
     fig.add_trace(go.Bar(
@@ -120,27 +119,10 @@ def bar_perc_separate_datasets(data,col,txt):
     return(fig)
 
 def separate_ab_from_pag_data(data):
-    ab  = data.loc[(data.dataset=='abastiment')]
-    pag = data.loc[(data.dataset=='pagesos')]
+    ab  = data.loc[(data.dataset=='abastiment')].copy()
+    pag = data.loc[(data.dataset=='pagesos')].copy()
     return(ab,pag)
     
-def pagament_prep(data,pagament):
-    ab,pag = separate_ab_from_pag_data(data)
-    ab.rename(columns=pagament,inplace=True)
-    pag.rename(columns=pagament,inplace=True)
-
-    ab_gb = pd.DataFrame(ab[list(pagament.values())].replace('', np.nan).sum(),columns=['sum'])
-    ab_gb['pctge'] = ab_gb['sum']/ab.shape[0]*100
-    #ab_gb = ab_gb.sort_values(by='pctgeascending=False)
-    ab_gb = ab_gb.round(2)
-    
-    pag_gb = pd.DataFrame(pag[list(pagament.values())].replace('', np.nan).sum(),columns=['sum'])
-    pag_gb['pctge'] = pag_gb['sum']/pag.shape[0]*100
-    pag_gb = pag_gb.sort_values(by='pctge',ascending=False)
-    pag_gb = pag_gb.round(2)
-    return(ab_gb,pag_gb)
-
-
 
 def dataset_to_plot(data,vdp,com_coord,multiple_origins=False):
     '''Counts the values per comarca for the whole dataset and per dataset tipe, 
@@ -194,7 +176,12 @@ def get_n_data_per_dataset(data,n_comarca):
     return(n_dataset)
 
 
-def bar_payment_type(pag_gb,ab_gb):
+def bar_payment_type(data_covid):
+
+    conf     = prep.read_yaml('conf', 'conf')
+    pagament = dict(conf['payment'], **conf['payment'])
+    ab_gb,pag_gb = pagament_prep(data_covid,pagament)
+
     fig = go.Figure()
     fig.add_trace(go.Bar(
         x=pag_gb.index,
@@ -222,7 +209,23 @@ def bar_payment_type(pag_gb,ab_gb):
                       title='Mètodes de pagament',
                      xaxis_title_text='Tipus de pagament',
                      yaxis_title_text='Percentatge productors (%)')
+
     return(fig)
+
+def pagament_prep(data,pagament):
+    ab,pag = separate_ab_from_pag_data(data)
+    ab.rename(columns=pagament,inplace=True)
+    pag.rename(columns=pagament,inplace=True)
+
+    ab_gb = pd.DataFrame(ab[list(pagament.values())].replace('', np.nan).sum(),columns=['sum'])
+    ab_gb = ab_gb.assign(pctge=ab_gb['sum']/ab.shape[0]*100)
+    ab_gb = ab_gb.round(2)
+
+    pag_gb = pd.DataFrame(pag[list(pagament.values())].replace('', np.nan).sum(),columns=['sum'])
+    pag_gb = pag_gb.assign(pctge=pag_gb['sum']/pag.shape[0]*100)
+    pag_gb = pag_gb.sort_values(by='pctge',ascending=False)
+    pag_gb = pag_gb.round(2)
+    return(ab_gb,pag_gb)
 
 
 def plot_sankey_sector(data, com_coord, save=False):
@@ -338,10 +341,12 @@ def plot_sankey(flows, com_coord):
     return(sdd)
 
 
-
 def display_sankey_svg():
     paths       = prep.read_yaml('conf','paths')
     onlyfiles   = [f for f in listdir(paths['output']) if isfile(Path(paths['output']) / f)]
     sankeyfiles = [Path(paths['output']) / f for f in onlyfiles if 'sankey' in f and '.svg' in f]
     for sankeyf in sankeyfiles:
+        name = str(sankeyf).split('/')[1]
+        name = name.replace("sankeydiag_",'').replace('.svg','').replace('_',' ').title()
+        print(name,':')
         display(SVG(sankeyf))

@@ -1,69 +1,42 @@
-all:
+tot:
   on_fields:
-  off_fields:
-  
-only_main_prod:
-  on_fields:
-    - n_main_prod
-  off_fields:
-    - n_other_prod
-
-no_main_prod:
+  off_fields: 
+no_productes_principals:
   on_fields:
     - n_other_prod
   off_fields:
     - n_main_prod
-
-only_meat:
-  on_fields:
-    - meat
-  off_fields:
-    - n_other_prod
-    - fruit
-    - vegetables
-
-only_fruit_veg:
-  on_fields:
-    - n_main_prod
-  off_fields:
-    - meat
-    - n_other_prod
-
-only_dairies:
-  on_fields:
-    - dairies
-  off_fields:
-    - n_main_prod
-    - is_horta
-    - is_fruita
-    - is_cereals
-    - is_ramaderia
-    - fruit_veggies_products
-    - oil_olives_vinager
-    - bread_pastries
-    - alcohol
-    - pasta
-    - hygiene_medicines
-    - drinks
-    - flowers
-    - others
-
-make_elaborations:
+elaboracions:
   on_fields:
     - is_elaboracio
   off_fields:
-  
-sect_ramaderia:
-  on_fields:
-    - is_ramaderia
-  off_fields:
-  
-sect_horta:
-  on_fields:
-    - is_horta
-  off_fields:
-  
-sect_fruita:
-  on_fields:
-    - is_fruita
-  off_fields:
+#nomes_productes_principals:
+#  on_fields:
+#    - n_main_prod
+#  off_fields:
+#    - n_other_prod
+#carn:
+#  on_fields:
+#    - meat
+#  off_fields:
+#    - n_other_prod
+#    - fruit
+#    - vegetables
+#fruita_verdura:
+#  on_fields:
+#    - n_main_prod
+#  off_fields:
+#    - meat
+#    - n_other_prod 
+#ramaderia:
+#  on_fields:
+#    - is_ramaderia
+#  off_fields: 
+#horta:
+#  on_fields:
+#    - is_horta
+#  off_fields:  
+#fruita:
+#  on_fields:
+#    - is_fruita
+#  off_fields:
