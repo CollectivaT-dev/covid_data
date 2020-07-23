@@ -79,9 +79,13 @@ def plot_layout(fig,cat,title_name):
                                showticklabels=False),
                      xaxis=dict(range=[x_low,x_up],
                                showgrid=False,
-                               showticklabels=False),
-                     width=800,
-                     height=800)
+                               showticklabels=False,
+                               scaleanchor = "y",
+                               scaleratio = 1,)
+                     )
+                     #,
+                     #width=800,
+                     #height=800)
     return(fig)
 
 def bar_perc_separate_datasets(data,col,txt):
