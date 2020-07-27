@@ -39,7 +39,7 @@ def add_trace_plot(fig,data,col,trace_type,txt,m_color,series_name=None):
         text_col = ''
     fig.add_trace(
         go.Scatter(x=data['longitude'],
-                   y=data['latitude'],
+                   y=data['latitude']-0.02,
                    text=text_col,
                    mode=plot_mode,
                    hoverinfo='text',
@@ -72,20 +72,19 @@ def plot_layout(fig,cat,title_name):
     )
 
     # Set templates
-    fig.update_layout(template="plotly_white",
-                      title=title_name,
-                     yaxis=dict(range=[y_low,y_up],
+    fig.update_layout(title=title_name,
+                      paper_bgcolor='rgba(0,0,0,0)',
+                      plot_bgcolor='rgba(0,0,0,0)',
+                      margin=dict(l=20, r=20, t=30, b=10),
+                      yaxis=dict(range=[y_low,y_up],
                                showgrid=False,
                                showticklabels=False),
-                     xaxis=dict(range=[x_low,x_up],
+                      xaxis=dict(range=[x_low,x_up],
                                showgrid=False,
                                showticklabels=False,
                                scaleanchor = "y",
                                scaleratio = 1,)
-                     )
-                     #,
-                     #width=800,
-                     #height=800)
+                      )
     return(fig)
 
 def bar_perc_separate_datasets(data,col,txt):
